@@ -24,8 +24,11 @@ class Node:
         self.isOutput = isOutput
         self.data = data
         self.isHovering = False
-        self.x, self.y = 0, 0  # Initialize with default values
+        self.x, self.y = 0, 0
         self.r = 5
+        # Add connection management
+        self.connection = None  # For input nodes
+        self.connections = []   # For output nodes
 
     def updatePosition(self):
         if self.isOutput:
@@ -45,6 +48,25 @@ class Node:
 
     def hitTest(self, mouseX, mouseY):
         return (self.x - self.r <= mouseX <= self.x + self.r) and (self.y - self.r <= mouseY <= self.y + self.r)
+    def addConnection(self, connection):
+        if self.isOutput:
+            self.connections.append(connection)
+        else:
+            # If input node already has a connection, remove it
+            if self.connection is not None:
+                for conn in app.connections:
+                    if conn.end_node == self:
+                        app.connections.remove(conn)
+                        break
+            self.connection = connection
+
+    def removeConnection(self, connection):
+        if self.isOutput:
+            if connection in self.connections:
+                self.connections.remove(connection)
+        else:
+            if self.connection == connection:
+                self.connection = None
 
 class TypicleComponent(Components):
     def __init__(self, app, inputs, outputs, name):
@@ -148,5 +170,4 @@ class Slider(Components):
         drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
         # Draw value label
         drawLabel(f'{self.value:.0f}', handleX, self.y - 10)
-        
         

@@ -1,5 +1,6 @@
 from cmu_graphics import *
 from Components import Slider, CircleCreator, RectCreator
+from Connection import Connections
 import time
 
 def onAppStart(app):
@@ -14,6 +15,10 @@ def onAppStart(app):
     app.borderX, app.borderY = 12, 12
     app.textHeight, app.textWidth = 13, 7
 
+    app.connections = []
+    app.draggingNode = None
+    app.tempConnection = None
+
     app.centerLabelWidth = 80
 
 def drawPlayground(app):
@@ -26,8 +31,20 @@ def drawPlayground(app):
 
 def redrawAll(app):
     drawPlayground(app)
+    
+    # Draw components
     for component in app.components:
         component.drawUI()
+    
+    # Draw connections
+    for connection in app.connections:
+        connection.draw()
+    
+    # Draw temporary connection while dragging
+    if app.tempConnection:
+        node, mouseX, mouseY = app.tempConnection
+        drawLine(node.x, node.y, mouseX, mouseY, 
+                lineWidth=2, fill='gray', dashes = (4,2))
 
 def onMouseMove(app, mouseX, mouseY):
     # if is hovering over a node, it highlights
@@ -40,13 +57,30 @@ def onMouseMove(app, mouseX, mouseY):
 
 def onMousePress(app, mouseX, mouseY):
     currentTime = time.time()
+    
+    # 首先检查是否点击到节点
+    for component in app.components:
+        for node in component.inputNodes + component.outputNodes:
+            if node.hitTest(mouseX, mouseY):
+                app.draggingNode = node
+                return
+    
+    # 检查连接线
+    for connection in app.connections:
+        if connection.hitTest(mouseX, mouseY):
+            if currentTime - app.lastClickTime < 0.3:  # 双击检测
+                app.connections.remove(connection)
+                return
+            app.lastClickTime = currentTime
+            return
+    
+    # 最后检查组件
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
-            if currentTime - app.lastClickTime < 0.3:  # 双击检测
+            if currentTime - app.lastClickTime < 0.3:
                 app.components.remove(component)
                 app.selectedComponent = None
                 return
-            # 单击处理
             if isinstance(component, Slider):
                 if component.hitTestHandle(mouseX, mouseY):
                     component.isDraggingHandle = True
@@ -59,28 +93,46 @@ def onMousePress(app, mouseX, mouseY):
                 component.isDragging = True
             app.lastClickTime = currentTime
             break
-    else:
-        app.lastClickTime = currentTime
+
 def onMouseDrag(app, mouseX, mouseY):
-    for component in app.components:
-        if isinstance(component, Slider) and component.isDraggingHandle:
+    if app.draggingNode:
+        # 处理节点拖动
+        app.tempConnection = (app.draggingNode, mouseX, mouseY)
+    elif app.selectedComponent:  # 只处理被选中的组件
+        if isinstance(app.selectedComponent, Slider) and app.selectedComponent.isDraggingHandle:
             # 更新滑块值
-            normalized_x = (mouseX - component.x) / component.width
-            component.value = component.min_val + normalized_x * (component.max_val - component.min_val)
-            component.value = max(component.min_val, min(component.max_val, component.value))
-        elif component.isDragging:
+            normalized_x = (mouseX - app.selectedComponent.x) / app.selectedComponent.width
+            app.selectedComponent.value = app.selectedComponent.min_val + normalized_x * (app.selectedComponent.max_val - app.selectedComponent.min_val)
+            app.selectedComponent.value = max(app.selectedComponent.min_val, min(app.selectedComponent.max_val, app.selectedComponent.value))
+        elif app.selectedComponent.isDragging:
             # 普通拖动
-            newX = mouseX - component.width / 2
-            newY = mouseY - component.height / 2
-            component.x, component.y = keepWithinBounds(app, newX, newY)
-            component.updateNodePositions()
+            newX = mouseX - app.selectedComponent.width / 2
+            newY = mouseY - app.selectedComponent.height / 2
+            app.selectedComponent.x, app.selectedComponent.y = keepWithinBounds(app, newX, newY)
+            app.selectedComponent.updateNodePositions()
 
 def onMouseRelease(app, mouseX, mouseY):
-    if app.selectedComponent:
-        if isinstance(app.selectedComponent, Slider):
-            app.selectedComponent.isDraggingHandle = False
-        app.selectedComponent.isDragging = False
-        app.selectedComponent = None
+    if app.draggingNode:
+        start_node = app.draggingNode
+        for component in app.components:
+            for node in component.inputNodes + component.outputNodes:
+                if node.hitTest(mouseX, mouseY) and node != start_node:
+                    if start_node.isOutput != node.isOutput:
+                        output_node = start_node if start_node.isOutput else node
+                        input_node = node if start_node.isOutput else start_node
+                        
+                        # Create new connection
+                        new_connection = Connections(output_node, input_node)
+                        
+                        # Add connection to nodes
+                        output_node.addConnection(new_connection)
+                        input_node.addConnection(new_connection)
+                        
+                        # Add connection to app
+                        app.connections.append(new_connection)
+        
+        app.draggingNode = None
+        app.tempConnection = None
 
 def keepWithinBounds(app, x, y):
     if x < 4:
