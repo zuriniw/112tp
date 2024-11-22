@@ -1,6 +1,7 @@
 from cmu_graphics import *
 from Components import Slider, CircleCreator, RectCreator
 from Connection import Connections
+from Toggle import Toggle
 import time
 
 def onAppStart(app):
@@ -19,7 +20,23 @@ def onAppStart(app):
     app.draggingNode = None
     app.tempConnection = None
 
+    app.toggleNames = ['Comp Display','Grid Display']
+    app.isCompDisplay = True
+    app.isGridDisplay = False
+    app.toggleCreator = {'Comp Display':app.isCompDisplay, 'Grid Display':app.isGridDisplay}
+
+    app.toggleWidth, app.toggleHeight = 80, 40      # toggle buttom
+    app.togglePanelWidth = 120
+    app.togglePanelStartX = app.width - app.togglePanelWidth
+    app.togglePanelStartY = app.toolbarHeight + app.paddingY
+
+    toggleStartX = app.togglePanelStartX + app.togglePanelWidth/2 - app.toggleWidth/2
+    firstToggleStartY = app.togglePanelStartY + app.borderY * 3
+    toggleName = list(app.toggleCreator.keys())
+    app.toggles = [Toggle(app, toggleStartX, firstToggleStartY + i*(app.textHeight+app.paddingY*3+app.toggleHeight), toggleName[i], app.toggleCreator[toggleName[i]]) for i in range(len(toggleName))]
+
     app.centerLabelWidth = 80
+    
 
 def drawPlayground(app):
     # big background
@@ -44,7 +61,11 @@ def redrawAll(app):
     if app.tempConnection:
         node, mouseX, mouseY = app.tempConnection
         drawLine(node.x, node.y, mouseX, mouseY, 
-                lineWidth=2, fill='gray', dashes = (4,2))
+                lineWidth=2, fill='lightGrey', dashes = (4,2))
+    
+    drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
+    for toggle in app.toggles:
+        toggle.drawUI()
 
 def onMouseMove(app, mouseX, mouseY):
     # if is hovering over a node, it highlights
@@ -74,9 +95,17 @@ def onMousePress(app, mouseX, mouseY):
             app.lastClickTime = currentTime
             return
     
+    for toggle in app.toggles:
+        if toggle.hitTest(mouseX, mouseY):
+            toggle.isOn = not toggle.isOn
+        
+        
+    hitComponent = False
     # 最后检查组件
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
+            hitComponent = True
+            # 1////双击删除
             if currentTime - app.lastClickTime < 0.3:
                 # 删除与该组件相关的所有连接
                 connectionsToRemove = []
@@ -93,6 +122,7 @@ def onMousePress(app, mouseX, mouseY):
                 app.components.remove(component)
                 app.selectedComponent = None
                 return
+            # 2///拖动手柄
             if isinstance(component, Slider):
                 if component.hitTestHandle(mouseX, mouseY):
                     # 点击到滑块手柄
@@ -103,11 +133,14 @@ def onMousePress(app, mouseX, mouseY):
                     app.selectedComponent = component
                     component.isDragging = True
                     component.isDraggingHandle = False
+            # 3///点到组件
             else:
                 app.selectedComponent = component
                 component.isDragging = True
             app.lastClickTime = currentTime
             break
+    if not hitComponent:
+        app.selectedComponent = None        
 
 def onMouseDrag(app, mouseX, mouseY):
     if app.draggingNode:

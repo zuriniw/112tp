@@ -1,6 +1,6 @@
 from cmu_graphics import *
 
-class Components:
+class Component:
     def __init__(self, app):
         self.width, self.height = 160, 200
         self.x = app.width/2
@@ -17,58 +17,7 @@ class Components:
     def hitTest(self, mouseX, mouseY):
         return (self.x <= mouseX <= self.x + self.width) and (self.y <= mouseY <= self.y + self.height)
 
-class Node:
-    def __init__(self, name, component, isOutput, data):
-        self.name = name
-        self.component = component
-        self.isOutput = isOutput
-        self.data = data
-        self.isHovering = False
-        self.x, self.y = 0, 0
-        self.r = 5
-        # Add connection management
-        self.connection = None  # For input nodes
-        self.connections = []   # For output nodes
-
-    def updatePosition(self):
-        if self.isOutput:
-            index = self.component.outputNodes.index(self)
-            self.x = self.component.x + self.component.width
-            if isinstance(self.component, TypicleComponent):
-                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight
-            else:
-                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight/2
-        else:
-            index = self.component.inputNodes.index(self)
-            self.x = self.component.x
-            self.y = self.component.y + app.borderY + index * (app.paddingY + app.textHeight)
-
-    def drawNode(self):
-        drawCircle(self.x, self.y, self.r, fill='black' if self.isHovering else 'white', border='black')
-
-    def hitTest(self, mouseX, mouseY):
-        return (self.x - self.r <= mouseX <= self.x + self.r) and (self.y - self.r <= mouseY <= self.y + self.r)
-    def addConnection(self, connection):
-        if self.isOutput:
-            self.connections.append(connection)
-        else:
-            # If input node already has a connection, remove it
-            if self.connection is not None:
-                for conn in app.connections:
-                    if conn.end_node == self:
-                        app.connections.remove(conn)
-                        break
-            self.connection = connection
-
-    def removeConnection(self, connection):
-        if self.isOutput:
-            if connection in self.connections:
-                self.connections.remove(connection)
-        else:
-            if self.connection == connection:
-                self.connection = None
-
-class TypicleComponent(Components):
+class TypicleComponent(Component):
     def __init__(self, app, inputs, outputs, name):
         super().__init__(app)
         self.inputs = inputs
@@ -133,7 +82,7 @@ class RectCreator(TypicleComponent):
         name = 'Draw\nRect\n█'
         super().__init__(app, inputs, outputs, name)
 
-class Slider(Components):
+class Slider(Component):
     def __init__(self, app, name='Slider', min_val=0, max_val=100):
         inputs = []
         outputs = ['value']
@@ -171,3 +120,53 @@ class Slider(Components):
         # Draw value label
         drawLabel(f'{self.value:.0f}', handleX, self.y - 10)
         
+class Node:
+    def __init__(self, name, component, isOutput, data):
+        self.name = name
+        self.component = component
+        self.isOutput = isOutput
+        self.data = data
+        self.isHovering = False
+        self.x, self.y = 0, 0
+        self.r = 5
+        # Add connection management
+        self.connection = None  # For input nodes
+        self.connections = []   # For output nodes
+
+    def updatePosition(self):
+        if self.isOutput:
+            index = self.component.outputNodes.index(self)
+            self.x = self.component.x + self.component.width
+            if isinstance(self.component, TypicleComponent):
+                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight
+            else:
+                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight/2
+        else:
+            index = self.component.inputNodes.index(self)
+            self.x = self.component.x
+            self.y = self.component.y + app.borderY + index * (app.paddingY + app.textHeight)
+
+    def drawNode(self):
+        drawCircle(self.x, self.y, self.r, fill='black' if self.isHovering else 'white', border='black')
+
+    def hitTest(self, mouseX, mouseY):
+        return (self.x - self.r <= mouseX <= self.x + self.r) and (self.y - self.r <= mouseY <= self.y + self.r)
+    def addConnection(self, connection):
+        if self.isOutput:
+            self.connections.append(connection)
+        else:
+            # If input node already has a connection, remove it
+            if self.connection is not None:
+                for conn in app.connections:
+                    if conn.end_node == self:
+                        app.connections.remove(conn)
+                        break
+            self.connection = connection
+
+    def removeConnection(self, connection):
+        if self.isOutput:
+            if connection in self.connections:
+                self.connections.remove(connection)
+        else:
+            if self.connection == connection:
+                self.connection = None

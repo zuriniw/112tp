@@ -1,16 +1,16 @@
 from cmu_graphics import *
+
 class Connections:
     def __init__(self, start_node, end_node):
         self.start_node = start_node
         self.end_node = end_node
-        self.isSelected = False
     
     def draw(self):
         drawLine(
             self.start_node.x, self.start_node.y,
             self.end_node.x, self.end_node.y,
             lineWidth=2,
-            fill='blue' if self.isSelected else 'black',
+            fill='grey',
         )
     
     def hitTest(self, mouseX, mouseY, threshold=5):
