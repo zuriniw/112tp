@@ -83,7 +83,7 @@ class TypicleComponent(Components):
         labelLines = self.name.split('\n')
         labelHeight = len(labelLines) * (app.textHeight + app.paddingY / 2) - app.paddingY / 2
         labelStartX = self.x + app.borderX + self.inputWidth + app.paddingX
-        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY, border='black')
+        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY * 1, border='black')
         labelX = labelStartX + app.centerLabelWidth / 2
         labelY = self.y + self.height / 2 - labelHeight / 2
         for line in labelLines:
@@ -125,9 +125,9 @@ class Slider(Components):
 
         self.value = (min_val + max_val) / 2
 
-        self.width = 200
-        self.height = 40
-        self.handleWidth = 4 
+        self.width = 120
+        self.height = 32
+        self.handleWidth = 8 
         self.isDraggingHandle = False
         self.outputHeight = app.textHeight
         
@@ -144,7 +144,7 @@ class Slider(Components):
         # Draw background
         drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
         # Draw handle
-        handleX = self.x + ((self.value - self.min_val) / (self.max_val - self.min_val)) * self.width
+        handleX = self.x + ((self.value - self.min_val) / (self.max_val - self.min_val)) * (self.width-self.handleWidth)
         drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
         # Draw value label
         drawLabel(f'{self.value:.0f}', handleX, self.y - 10)
