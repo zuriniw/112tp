@@ -83,14 +83,12 @@ def onKeyPress(app, key):
     elif key == 'c':
         newCircleCreator = CircleCreator(app)
         newCircleCreator.updateNodePositions()
-        app.components.append(newCircleCreator)
-        
+        app.components.append(newCircleCreator)     
     elif key == 'r':
         newRectCreator = RectCreator(app)
         newRectCreator.updateNodePositions()
         app.components.append(newRectCreator)
         
-
 def main():
     runApp()
 

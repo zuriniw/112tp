@@ -1,7 +1,5 @@
 from cmu_graphics import *
 
-from cmu_graphics import *
-
 class Components:
     def __init__(self, app):
         self.width, self.height = 160, 200
