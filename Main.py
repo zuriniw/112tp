@@ -68,7 +68,7 @@ def onMousePress(app, mouseX, mouseY):
     # 检查连接线
     for connection in app.connections:
         if connection.hitTest(mouseX, mouseY):
-            if currentTime - app.lastClickTime < 0.3:  # 双击检测
+            if currentTime - app.lastClickTime < 0.3:
                 app.connections.remove(connection)
                 return
             app.lastClickTime = currentTime
@@ -78,16 +78,31 @@ def onMousePress(app, mouseX, mouseY):
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
             if currentTime - app.lastClickTime < 0.3:
+                # 删除与该组件相关的所有连接
+                connectionsToRemove = []
+                for connection in app.connections:
+                    if (connection.start_node.component == component or 
+                        connection.end_node.component == component):
+                        connectionsToRemove.append(connection)
+                
+                # 从 app.connections 中移除这些连接
+                for connection in connectionsToRemove:
+                    app.connections.remove(connection)
+                
+                # 删除组件
                 app.components.remove(component)
                 app.selectedComponent = None
                 return
             if isinstance(component, Slider):
                 if component.hitTestHandle(mouseX, mouseY):
+                    # 点击到滑块手柄
                     component.isDraggingHandle = True
                     app.selectedComponent = component
                 else:
+                    # 点击到滑块其他部分，只设置拖动状态
                     app.selectedComponent = component
                     component.isDragging = True
+                    component.isDraggingHandle = False
             else:
                 app.selectedComponent = component
                 component.isDragging = True
@@ -96,8 +111,17 @@ def onMousePress(app, mouseX, mouseY):
 
 def onMouseDrag(app, mouseX, mouseY):
     if app.draggingNode:
-        # 处理节点拖动
+        # 处理节点拖动和悬停检测
         app.tempConnection = (app.draggingNode, mouseX, mouseY)
+        
+        # 检查是否悬停在任何输入节点上
+        for component in app.components:
+            for node in component.inputNodes:  # 只检查输入节点
+                if node.hitTest(mouseX, mouseY):
+                    node.isHovering = True
+                else:
+                    node.isHovering = False
+                    
     elif app.selectedComponent:  # 只处理被选中的组件
         if isinstance(app.selectedComponent, Slider) and app.selectedComponent.isDraggingHandle:
             # 更新滑块值
