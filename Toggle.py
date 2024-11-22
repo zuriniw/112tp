@@ -11,13 +11,13 @@ class Toggle:
         drawRect(self.toggleX, self.toggleY, app.toggleWidth, app.toggleHeight, border = 'black', fill = 'white')
         drawLabel(self.name, self.x+ app.toggleWidth / 2, self.y )
         toggleHandlerWidth = 20
-        if self.isOn:
-            drawRect(self.toggleX, self.toggleY-3, toggleHandlerWidth, app.toggleHeight+6, border = 'black', fill = 'black')
-        else:
+        if not self.isOn:
             for i in range(app.toggleWidth // 5):
                 x0 = self.toggleX + i * 5
                 drawLine(x0,self.toggleY,x0,self.toggleY + app.toggleHeight)
-            drawRect(self.toggleX + app.toggleWidth - toggleHandlerWidth, self.toggleY-3, toggleHandlerWidth, app.toggleHeight+6, border = 'black', fill = 'white')
+            drawRect(self.toggleX, self.toggleY-3, toggleHandlerWidth, app.toggleHeight+6, border = 'black', fill = 'white') 
+        else:
+            drawRect(self.toggleX + app.toggleWidth - toggleHandlerWidth, self.toggleY-3, toggleHandlerWidth, app.toggleHeight+6, border = 'black', fill = 'black')
             
             
     def hitTest(self, mouseX, mouseY):
