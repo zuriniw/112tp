@@ -31,11 +31,14 @@ class Node:
         if self.isOutput:
             index = self.component.outputNodes.index(self)
             self.x = self.component.x + self.component.width
-            self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (self.component.paddingY + self.component.textHeight) + self.component.textHeight
+            if isinstance(self.component, TypicleComponent):
+                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight
+            else:
+                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight/2
         else:
             index = self.component.inputNodes.index(self)
             self.x = self.component.x
-            self.y = self.component.y + self.component.borderY + index * (self.component.paddingY + self.component.textHeight)
+            self.y = self.component.y + app.borderY + index * (app.paddingY + app.textHeight)
 
     def drawNode(self):
         drawCircle(self.x, self.y, self.r, fill='black' if self.isHovering else 'white', border='black')
@@ -49,14 +52,14 @@ class TypicleComponent(Components):
         self.inputs = inputs
         self.outputs = outputs
         self.name = name
-        self.paddingX, self.paddingY, self.borderX, self.borderY, self.textHeight, self.textWidth = app.paddingX, app.paddingY, app.borderX, app.borderY, app.textHeight, app.textWidth 
+    
         self.centerLabelWidth = app.centerLabelWidth
-        self.inputWidth = self.textWidth * max(len(inp) for inp in self.inputs)
-        self.outputWidth = self.textWidth * max(len(output) for output in self.outputs)
-        self.inputHeight = (self.textHeight + self.paddingY) * len(self.inputs) - self.paddingY
-        self.outputHeight = (self.textHeight + self.paddingY) * len(self.outputs) - self.paddingY
-        self.width = self.paddingX * 2 + self.borderX * 2 + self.centerLabelWidth + self.inputWidth + self.outputWidth
-        self.height = max(self.inputHeight, self.outputHeight) + self.paddingY
+        self.inputWidth = app.textWidth * max(len(inp) for inp in self.inputs)
+        self.outputWidth = app.textWidth * max(len(output) for output in self.outputs)
+        self.inputHeight = (app.textHeight + app.paddingY) * len(self.inputs) - app.paddingY
+        self.outputHeight = (app.textHeight + app.paddingY) * len(self.outputs) - app.paddingY
+        self.width = app.paddingX * 2 + app.borderX * 2 + app.centerLabelWidth + self.inputWidth + self.outputWidth
+        self.height = max(self.inputHeight, self.outputHeight) + app.paddingY
         self.inputNodes = [Node(input, self, False, None) for input in self.inputs]
         self.outputNodes = [Node(output, self, True, None) for output in self.outputs]
         self.updateNodePositions()
@@ -70,29 +73,29 @@ class TypicleComponent(Components):
         drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
 
         # Draw inputs
-        y_input = self.y + self.borderY
+        y_input = self.y + app.borderY
         for i, inputLabel in enumerate(self.inputs):
-            x_input = self.x + self.borderX + self.inputWidth / 2
+            x_input = self.x + app.borderX + self.inputWidth / 2
             drawLabel(inputLabel, x_input, y_input)
-            y_input += self.textHeight + self.paddingY
+            y_input += app.textHeight + app.paddingY
 
         # Draw center label
         labelLines = self.name.split('\n')
-        labelHeight = len(labelLines) * (self.textHeight + self.paddingY / 2) - self.paddingY / 2
-        labelStartX = self.x + self.borderX + self.inputWidth + self.paddingX
-        drawRect(labelStartX, self.y + self.borderY, self.centerLabelWidth, self.height - self.borderY * 2, border='black')
-        labelX = labelStartX + self.centerLabelWidth / 2
+        labelHeight = len(labelLines) * (app.textHeight + app.paddingY / 2) - app.paddingY / 2
+        labelStartX = self.x + app.borderX + self.inputWidth + app.paddingX
+        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY, border='black')
+        labelX = labelStartX + app.centerLabelWidth / 2
         labelY = self.y + self.height / 2 - labelHeight / 2
         for line in labelLines:
             drawLabel(line, labelX, labelY, fill='white')
-            labelY += self.textHeight + self.paddingY / 2
+            labelY += app.textHeight + app.paddingY / 2
 
         # Draw outputs
-        y_output = self.y + (self.height - self.outputHeight) / 2 + self.textHeight
+        y_output = self.y + (self.height - self.outputHeight) / 2 + app.textHeight
         for outputLabel in self.outputs:
-            outputX = self.x + (self.borderX + self.inputWidth + self.paddingX + self.centerLabelWidth + self.paddingX) + self.outputWidth / 2
+            outputX = self.x + (app.borderX + self.inputWidth + app.paddingX + app.centerLabelWidth + app.paddingX) + self.outputWidth / 2
             drawLabel(outputLabel, outputX, y_output)
-            y_output += self.textHeight + self.paddingY
+            y_output += app.textHeight + app.paddingY
 
 class CircleCreator(TypicleComponent):
     def __init__(self, app):
@@ -108,26 +111,42 @@ class RectCreator(TypicleComponent):
         name = 'Draw\nRect\n█'
         super().__init__(app, inputs, outputs, name)
 
-
-class InteractablePart:
-    def __init__(self, app, x, y, w, h):
-        self.x = x
-        self.y = y
-        self.width = w
-        self.height = h
-
-    def hitTest(self, mouseX, mouseY):
-        return (self.x <= mouseX <= self.x + self.width) and (self.y <= mouseY <= self.y + self.height)
-    
 class Slider(Components):
-    def __init__(self, app):
+    def __init__(self, app, name='Slider', min_val=0, max_val=100):
+        inputs = []
+        outputs = ['value']
         super().__init__(app)
-        self.value = 50  # Initial slider value
+        
+        self.outputs = outputs
+        self.outputNodes = [Node(output, self, True, None) for output in outputs]
+        ### have 
+        self.min_val = min_val
+        self.max_val = max_val
+
+        self.value = (min_val + max_val) / 2
+
         self.width = 200
         self.height = 40
+        self.handleWidth = 4 
+        self.isDraggingHandle = False
+        self.outputHeight = app.textHeight
+        
+        self.updateNodePositions()
+    
+    def hitTestHandle(self, mouseX, mouseY):
+        handleX = self.x + ((self.value - self.min_val) / (self.max_val - self.min_val)) * self.width
+        return (handleX - 2 <= mouseX <= handleX + self.handleWidth + 2) and (self.y <= mouseY <= self.y + self.height)
 
     def drawUI(self):
-        drawRect(self.x, self.y, self.width, self.height, fill='lightgrey')
-        handleX = self.x + (self.value / 100) * self.width
-        drawRect(handleX - 5, self.y, 10, self.height, fill='darkgrey')
-
+        # Draw node
+        for node in self.outputNodes:
+            node.drawNode()
+        # Draw background
+        drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
+        # Draw handle
+        handleX = self.x + ((self.value - self.min_val) / (self.max_val - self.min_val)) * self.width
+        drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
+        # Draw value label
+        drawLabel(f'{self.value:.0f}', handleX, self.y - 10)
+        
+        

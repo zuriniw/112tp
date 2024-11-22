@@ -8,10 +8,11 @@ def onAppStart(app):
     app.toolbarHeight = 80
     app.components = []
     app.selectedComponent = None
+    app.lastClickTime = time.time()
 
     app.paddingX, app.paddingY = 8, 12
     app.borderX, app.borderY = 12, 12
-    app.textHeight, app.textWidth = 11, 7
+    app.textHeight, app.textWidth = 13, 7
 
     app.centerLabelWidth = 80
 
@@ -41,24 +42,45 @@ def onMousePress(app, mouseX, mouseY):
     currentTime = time.time()
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
-            if currentTime - app.lastClickTime < 0.3:  # If second click is within 300 ms, consider it a double-click
-                app.components.remove(component)  # Remove the component
+            if currentTime - app.lastClickTime < 0.3:  # 双击检测
+                app.components.remove(component)
                 app.selectedComponent = None
-                return  # Exit after deleting the component to avoid errors
+                return
+            # 单击处理
+            if isinstance(component, Slider):
+                if component.hitTestHandle(mouseX, mouseY):
+                    component.isDraggingHandle = True
+                    app.selectedComponent = component
+                else:
+                    app.selectedComponent = component
+                    component.isDragging = True
             else:
                 app.selectedComponent = component
                 component.isDragging = True
-                app.lastClickTime = currentTime
-                break
+            app.lastClickTime = currentTime
+            break
     else:
-        app.lastClickTime = currentTime  # Reset last click time if no component was clicked
-
+        app.lastClickTime = currentTime
 def onMouseDrag(app, mouseX, mouseY):
-    if app.selectedComponent and app.selectedComponent.isDragging:
-        newX = mouseX - app.selectedComponent.width / 2
-        newY = mouseY - app.selectedComponent.height / 2
-        app.selectedComponent.x, app.selectedComponent.y = keepWithinBounds(app, newX, newY)
-        app.selectedComponent.updateNodePositions()
+    for component in app.components:
+        if isinstance(component, Slider) and component.isDraggingHandle:
+            # 更新滑块值
+            normalized_x = (mouseX - component.x) / component.width
+            component.value = component.min_val + normalized_x * (component.max_val - component.min_val)
+            component.value = max(component.min_val, min(component.max_val, component.value))
+        elif component.isDragging:
+            # 普通拖动
+            newX = mouseX - component.width / 2
+            newY = mouseY - component.height / 2
+            component.x, component.y = keepWithinBounds(app, newX, newY)
+            component.updateNodePositions()
+
+def onMouseRelease(app, mouseX, mouseY):
+    if app.selectedComponent:
+        if isinstance(app.selectedComponent, Slider):
+            app.selectedComponent.isDraggingHandle = False
+        app.selectedComponent.isDragging = False
+        app.selectedComponent = None
 
 def keepWithinBounds(app, x, y):
     if x < 4:
@@ -71,10 +93,6 @@ def keepWithinBounds(app, x, y):
         y = app.height = app.selectedComponent.height - 4
     return x, y
 
-def onMouseRelease(app, mouseX, mouseY):
-    if app.selectedComponent:
-        app.selectedComponent.isDragging = False
-        app.selectedComponent = None
 
 def onKeyPress(app, key):
     if key == 's':
