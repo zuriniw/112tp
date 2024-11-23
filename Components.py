@@ -56,13 +56,13 @@ class TypicleComponent(Component):
         labelStartX = self.x + app.borderX + self.inputWidth + app.paddingX
         drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY * 1, border='black')
         labelX = labelStartX + app.centerLabelWidth / 2
-        labelY = self.y + self.height / 2 - labelHeight / 2
+        labelY = self.y + self.height / 2 - labelHeight / 2 + app.borderY
         for line in labelLines:
-            drawLabel(line, labelX, labelY, fill='white')
+            drawLabel(line, labelX, labelY, fill='white', font = 'symbols')
             labelY += app.textHeight + app.paddingY / 2
 
         # Draw outputs
-        y_output = self.y + (self.height - self.outputHeight) / 2 + app.textHeight
+        y_output = self.y + (self.height - self.outputHeight) / 2 + app.textHeight/2
         for outputLabel in self.outputs:
             outputX = self.x + (app.borderX + self.inputWidth + app.paddingX + app.centerLabelWidth + app.paddingX) + self.outputWidth / 2
             drawLabel(outputLabel, outputX, y_output)
@@ -70,14 +70,14 @@ class TypicleComponent(Component):
 
 class CircleCreator(TypicleComponent):
     def __init__(self, app):
-        inputs = ['x', 'y', 'radius', '1', '2', '3']
-        outputs = ['theCircle', '1']
+        inputs = ['x', 'y', 'radius']
+        outputs = ['theCircle']
         name = 'Draw\nCirc\n●'
         super().__init__(app, inputs, outputs, name)
 
 class RectCreator(TypicleComponent):
     def __init__(self, app):
-        inputs = ['x', 'y', 'width', 'height', '1', '2', '3']
+        inputs = ['x', 'y', 'width', 'height']
         outputs = ['theRect']
         name = 'Draw\nRect\n█'
         super().__init__(app, inputs, outputs, name)
@@ -137,10 +137,7 @@ class Node:
         if self.isOutput:
             index = self.component.outputNodes.index(self)
             self.x = self.component.x + self.component.width
-            if isinstance(self.component, TypicleComponent):
-                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight
-            else:
-                self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight/2
+            self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight/2
         else:
             index = self.component.inputNodes.index(self)
             self.x = self.component.x

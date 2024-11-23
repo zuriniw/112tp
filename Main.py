@@ -20,10 +20,12 @@ def onAppStart(app):
     app.draggingNode = None
     app.tempConnection = None
 
-    app.toggleNames = ['Comp Display','Grid Display']
     app.isCompDisplay = True
     app.isGridDisplay = False
-    app.toggleCreator = {'Comp Display':app.isCompDisplay, 'Grid Display':app.isGridDisplay}
+    app.toggleStates = {
+        'Comp Display': app.isCompDisplay,
+        'Grid Display': app.isGridDisplay
+    }
 
     app.toggleWidth, app.toggleHeight = 80, 40      # toggle buttom
     app.togglePanelWidth = 120
@@ -32,8 +34,8 @@ def onAppStart(app):
 
     toggleStartX = app.togglePanelStartX + app.togglePanelWidth/2 - app.toggleWidth/2
     firstToggleStartY = app.togglePanelStartY + app.borderY * 3
-    toggleName = list(app.toggleCreator.keys())
-    app.toggles = [Toggle(app, toggleStartX, firstToggleStartY + i*(app.textHeight+app.paddingY*3+app.toggleHeight), toggleName[i], app.toggleCreator[toggleName[i]]) for i in range(len(toggleName))]
+    toggleNames = list(app.toggleStates.keys())
+    app.toggles = [Toggle(app, toggleStartX, firstToggleStartY + i*(app.textHeight+app.paddingY*3+app.toggleHeight), toggleNames[i], app.toggleStates[toggleNames[i]]) for i in range(len(toggleNames))]
 
     app.centerLabelWidth = 80
     
@@ -48,20 +50,20 @@ def drawPlayground(app):
 
 def redrawAll(app):
     drawPlayground(app)
-    
-    # Draw components
-    for component in app.components:
-        component.drawUI()
-    
-    # Draw connections
-    for connection in app.connections:
-        connection.draw()
-    
-    # Draw temporary connection while dragging
-    if app.tempConnection:
-        node, mouseX, mouseY = app.tempConnection
-        drawLine(node.x, node.y, mouseX, mouseY, 
-                lineWidth=2, fill='lightGrey', dashes = (4,2))
+    if app.isCompDisplay:
+        # Draw components
+        for component in app.components:
+            component.drawUI()
+        
+        # Draw connections
+        for connection in app.connections:
+            connection.draw()
+        
+        # Draw temporary connection while dragging
+        if app.tempConnection:
+            node, mouseX, mouseY = app.tempConnection
+            drawLine(node.x, node.y, mouseX, mouseY, 
+                    lineWidth=2, fill='lightGrey', dashes = (4,2))
     
     drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
     for toggle in app.toggles:
@@ -95,9 +97,15 @@ def onMousePress(app, mouseX, mouseY):
             app.lastClickTime = currentTime
             return
     
+    # 检查toggle
     for toggle in app.toggles:
         if toggle.hitTest(mouseX, mouseY):
             toggle.isOn = not toggle.isOn
+            # Generate mapping dynamically by converting toggle name to variable name
+            var_name = 'is'+toggle.name.replace(' ', '')
+            setattr(app, var_name, toggle.isOn)
+            app.toggleStates[toggle.name] = toggle.isOn
+            return
         
         
     hitComponent = False
