@@ -2,12 +2,15 @@ from cmu_graphics import *
 from Components import Slider, CircleCreator, RectCreator
 from Connection import Connections
 from Toggle import Toggle
+from ToolbarButton import ToolbarButton
+from ToolbarTab import ToolbarTab
+
 import time
 
 def onAppStart(app):
     app.width = 1512
     app.height = 982
-    app.toolbarHeight = 80
+    app.toolbarHeight = 110
     app.components = []
     app.selectedComponent = None
     app.lastClickTime = time.time()
@@ -22,9 +25,14 @@ def onAppStart(app):
 
     app.isCompDisplay = True
     app.isGridDisplay = False
+    app.isDotDisplay = False
+    app.isGuidbookDisplay = False
+
     app.toggleStates = {
         'Comp Display': app.isCompDisplay,
-        'Grid Display': app.isGridDisplay
+        'Grid Display': app.isGridDisplay,
+        'Dot Display':app.isDotDisplay,
+        'Guidbook Display':app.isGuidbookDisplay
     }
 
     app.toggleWidth, app.toggleHeight = 80, 40      # toggle buttom
@@ -38,18 +46,53 @@ def onAppStart(app):
     app.toggles = [Toggle(app, toggleStartX, firstToggleStartY + i*(app.textHeight+app.paddingY*3+app.toggleHeight), toggleNames[i], app.toggleStates[toggleNames[i]]) for i in range(len(toggleNames))]
 
     app.centerLabelWidth = 80
+
+    # Toolbar organization
+    app.categories = ['Geometry', 'Math', 'Other', 'Line']
+    app.activeCategory = 'Geometry'  # Default active category
+
+    app.isDraggingNewComponent = False
+    app.draggedComponentType = None
+
+    app.componentTypes = {
+        'Geometry': [CircleCreator, RectCreator],
+        'Math': [Slider],
+        'Other': [],
+        'Line': []
+    }
+    initToolbar(app)
     
+    # Toolbar tab
+    app.tabs = []
+    tabX = 0
+    for category in app.categories:
+        isActive = (category == app.activeCategory)
+        tab = ToolbarTab(tabX, 0, category, isActive)
+        app.tabs.append(tab)
+        tabX += tab.width - 2
+
+def initToolbar(app): 
+    buttomCompoList = app.componentTypes[app.activeCategory]
+    app.buttomList = [ToolbarButton(app, app.borderX + buttomCompoList.index(buttomCompo) * (50 + app.paddingX), 40, buttomCompo) for buttomCompo in buttomCompoList]
+
+def drawToolbar(app):
+    tabHeight = 30
+    drawLine(0, app.toolbarHeight, app.width, app.toolbarHeight)
+    drawLine(0, tabHeight-1, app.width, tabHeight-1)
+    # 绘制标签页
+    for tab in app.tabs:
+        tab.drawUI()
+    # 绘制按钮
+    for button in app.buttomList:
+        button.drawUI()
 
 def drawPlayground(app):
     # big background
     drawRect(0, 0, app.width, app.height, fill='white')
-    # tool bar background
-    drawRect(0, 0, app.width, app.toolbarHeight, fill='black')
-    # textLabel
-    drawLabel('Toolbar', app.width / 2, app.toolbarHeight / 2, bold = True, size=14, fill='white', font='monospace')
-
+    
 def redrawAll(app):
     drawPlayground(app)
+    drawToolbar(app)
     if app.isCompDisplay:
         # Draw components
         for component in app.components:
@@ -64,10 +107,19 @@ def redrawAll(app):
             node, mouseX, mouseY = app.tempConnection
             drawLine(node.x, node.y, mouseX, mouseY, 
                     lineWidth=2, fill='lightGrey', dashes = (4,2))
+        
+        # Draw component being dragged
+        if app.isDraggingNewComponent and app.draggedComponentType:
+            preview = app.draggedComponentType(app)
+            preview.x = app.mouseX - preview.width/2
+            preview.y = app.mouseY - preview.height/2
+            preview.drawUI()
     
     drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
     for toggle in app.toggles:
         toggle.drawUI()
+
+    
 
 def onMouseMove(app, mouseX, mouseY):
     # if is hovering over a node, it highlights
@@ -106,7 +158,20 @@ def onMousePress(app, mouseX, mouseY):
             setattr(app, var_name, toggle.isOn)
             app.toggleStates[toggle.name] = toggle.isOn
             return
-        
+    
+    # 检查toolbar buttom
+
+
+    # 检查toobar tab
+    for tab in app.tabs:
+        if tab.hitTest(mouseX, mouseY):
+            # 更新活动状态
+            for t in app.tabs:
+                t.isActive = (t == tab)
+            app.activeCategory = tab.category
+            # 重新初始化工具栏按钮
+            initToolbar(app)
+            return
         
     hitComponent = False
     # 最后检查组件

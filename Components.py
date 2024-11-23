@@ -23,6 +23,7 @@ class TypicleComponent(Component):
         self.inputs = inputs
         self.outputs = outputs
         self.name = name
+
     
         self.centerLabelWidth = app.centerLabelWidth
         self.inputWidth = app.textWidth * max(len(inp) for inp in self.inputs)
@@ -56,7 +57,7 @@ class TypicleComponent(Component):
         labelStartX = self.x + app.borderX + self.inputWidth + app.paddingX
         drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY * 1, border='black')
         labelX = labelStartX + app.centerLabelWidth / 2
-        labelY = self.y + self.height / 2 - labelHeight / 2 + app.borderY
+        labelY = self.y + self.height / 2 - labelHeight / 2 + app.borderY/2
         for line in labelLines:
             drawLabel(line, labelX, labelY, fill='white', font = 'symbols')
             labelY += app.textHeight + app.paddingY / 2
@@ -72,22 +73,25 @@ class CircleCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['x', 'y', 'radius']
         outputs = ['theCircle']
-        name = 'Draw\nCirc\n●'
+        name = 'Draw\nCirc\nO'
+
         super().__init__(app, inputs, outputs, name)
 
 class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['x', 'y', 'width', 'height']
         outputs = ['theRect']
-        name = 'Draw\nRect\n█'
+        name = 'Draw\nRect\n⚪'
+
         super().__init__(app, inputs, outputs, name)
 
 class Slider(Component):
-    def __init__(self, app, name='Slider', min_val=0, max_val=100):
+    def __init__(self, app, name='Slider\n--->', min_val=0, max_val=100):
         inputs = []
         outputs = ['value']
         super().__init__(app)
-        
+
+        self.name = name
         self.outputs = outputs
         self.outputNodes = [Node(output, self, True, None) for output in outputs]
         ### have 
