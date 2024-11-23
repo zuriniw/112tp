@@ -78,4 +78,110 @@ class Reverse(TypicleComponent):
                         for connection in node.connections:
                             connection.end_node.receiveValue(opposite_val)
 
+class Add(TypicleComponent):
+    def __init__(self, app):
+        inputs = ['n_1', 'n_2']
+        outputs = ['sum']
+        name = 'Add\nNumber\n+'
+        self.isGeo = False
+        super().__init__(app, inputs, outputs, name)
+
+        # 没有input的时候默认为0
+        self.n_1_val = 0
+        self.n_2_val = 0
+        self.hasAllInputs = True
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'n_1':
+            self.n_1_val = value
+        elif nodeName == 'n_2':
+            self.n_2_val = value
+
+        sum_val = self.n_1_val + self.n_2_val
+
+        # 更新输出节点的值
+        for node in self.outputNodes:
+            if node.name == 'sum':
+                node.value = sum_val
+                # 通过输出节点传递值
+                for connection in node.connections:
+                    connection.end_node.receiveValue(sum_val)   
+                      
+class Subtract(TypicleComponent):
+    def __init__(self, app):
+        inputs = ['n_1', 'n_2']
+        outputs = ['difference']
+        name = 'Sub\nNumber\n-'
+        self.isGeo = False
+        super().__init__(app, inputs, outputs, name)
         
+        self.n_1_val = 0
+        self.n_2_val = 0
+        self.hasAllInputs = True
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'n_1':
+            self.n_1_val = value
+        elif nodeName == 'n_2':
+            self.n_2_val = value
+
+        diff_val = self.n_1_val - self.n_2_val
+
+        for node in self.outputNodes:
+            if node.name == 'difference':
+                node.value = diff_val
+                for connection in node.connections:
+                    connection.end_node.receiveValue(diff_val)
+
+class Multiply(TypicleComponent):
+    def __init__(self, app):
+        inputs = ['n_1', 'n_2']
+        outputs = ['product']
+        name = 'Mul\nNumber\n×'
+        self.isGeo = False
+        super().__init__(app, inputs, outputs, name)
+        
+        self.n_1_val = 0
+        self.n_2_val = 0
+        self.hasAllInputs = True
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'n_1':
+            self.n_1_val = value
+        elif nodeName == 'n_2':
+            self.n_2_val = value
+
+        product_val = self.n_1_val * self.n_2_val
+
+        for node in self.outputNodes:
+            if node.name == 'product':
+                node.value = product_val
+                for connection in node.connections:
+                    connection.end_node.receiveValue(product_val)
+
+class Divide(TypicleComponent):
+    def __init__(self, app):
+        inputs = ['n_1', 'n_2']
+        outputs = ['quotient']
+        name = 'Div\nNumber\n÷'
+        self.isGeo = False
+        super().__init__(app, inputs, outputs, name)
+        
+        self.n_1_val = 0
+        self.n_2_val = 1  # 默认除数为1避免除零
+        self.hasAllInputs = True
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'n_1':
+            self.n_1_val = value
+        elif nodeName == 'n_2':
+            # 避免除零
+            self.n_2_val = value if value != 0 else 1
+
+        quotient_val = self.n_1_val / self.n_2_val
+
+        for node in self.outputNodes:
+            if node.name == 'quotient':
+                node.value = quotient_val
+                for connection in node.connections:
+                    connection.end_node.receiveValue(quotient_val)

@@ -1,7 +1,8 @@
 from cmu_graphics import *
 from Components import *
-from Compo_Geometry import *
+from Compo_Geo import *
 from Compo_Math import *
+from Compo_Vector import *
 from Connection import Connections
 from Toggle import Toggle
 from ToolbarButton import ToolbarButton
@@ -66,10 +67,10 @@ def onAppStart(app):
 
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
-        'Math': [Slider, Reverse],
+        'Math': [Slider, Reverse, Add, Subtract, Multiply, Divide],
         'Manipulation': [],
         'Analyze': [],
-        'Vector':[]
+        'Vector':[Point]
     }
     app.activeCategory = 'Geometry'  # Default active category
     loadToolbar(app)

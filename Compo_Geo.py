@@ -21,7 +21,7 @@ class CircleCreator(TypicleComponent):
         elif nodeName == 'y':
             self.y_val = app.y0 - value
         elif nodeName == 'radius':
-            self.radius_val = abs(value)
+            self.radius_val = abs(value) if self.radius_val != 0 else None
         self.hasAllInputs = (self.x_val is not None and 
                             self.y_val is not None and 
                             self.radius_val is not None)
