@@ -7,24 +7,23 @@ class Point(TypicleComponent):
         outputs = ['point']
         name = 'point\n๏'
         self.isGeo = True
+        self.x_val = app.x0
+        self.y_val = app.y0
         super().__init__(app, inputs, outputs, name)
-        self.x_val = None
-        self.y_val = None
-        self.cord = None
-        self.hasAllInputs = (self.x_val is not None and 
-                       self.y_val is not None)
+        
+        self.hasAllInputs = True
     
     def updateValue(self, nodeName, value):
         if nodeName == 'x':
             self.x_val = value + app.x0
         elif nodeName == 'y':
             self.y_val = app.y0 - value
-
-        self.hasAllInputs = (self.x_val is not None and 
-                            self.y_val is not None)
-        if self.hasAllInputs:
-            self.cord = (self.x_val, self.y_val)
+        
+        for node in self.outputNodes:
+            if node.name == 'point':
+                node.value = self.x_val, self.y_val
+                for connection in node.connections:
+                    connection.end_node.receiveValue(node.value)
 
     def draw(self):
-        if self.hasAllInputs:
-            drawCircle(self.x_val, self.y_val, 4, fill='white', border='blue', borderWidth = 2)
+        drawCircle(self.x_val, self.y_val, 4, fill='white', border='blue', borderWidth = 2)
