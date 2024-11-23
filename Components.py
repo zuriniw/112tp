@@ -78,16 +78,68 @@ class CircleCreator(TypicleComponent):
         inputs = ['x', 'y', 'radius']
         outputs = ['theCircle']
         name = 'Draw\nCirc\nO'
-
         super().__init__(app, inputs, outputs, name)
+        self.x_val = None
+        self.y_val = None
+        self.radius_val = None
+        self.hasAllInputs = (self.x_val is not None and 
+                       self.y_val is not None and 
+                       self.radius_val is not None)
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'x':
+            self.x_val = value
+        elif nodeName == 'y':
+            self.y_val = value
+        elif nodeName == 'radius':
+            self.radius_val = max(0, value) if value is not None else None
+        # 需要添加这行
+        self.hasAllInputs = (self.x_val is not None and 
+                            self.y_val is not None and 
+                            self.radius_val is not None)
 
+    
+    def draw(self):
+        # Only draw circle if all inputs are valid
+        if self.hasAllInputs:
+            drawCircle(self.x_val, self.y_val, self.radius_val, 
+                      fill=None, border='blue')
+                      
 class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['x', 'y', 'width', 'height']
-        outputs = ['theRect''x', 'y', 'width', 'height','x', 'y', 'width', 'height']
-        name = 'Draw\nRect\n⚪'
-
+        outputs = ['theRect']
+        name = 'Draw\nRect\n⬚'
         super().__init__(app, inputs, outputs, name)
+        self.x_val = None
+        self.y_val = None
+        self.width_val = None
+        self.height_val = None
+        self.hasAllInputs = (self.x_val is not None and 
+                            self.y_val is not None and 
+                            self.width_val is not None and 
+                            self.height_val is not None)
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'x':
+            self.x_val = value
+        elif nodeName == 'y':
+            self.y_val = value
+        elif nodeName == 'width':
+            self.width_val = max(0, value) if value is not None else None
+        elif nodeName == 'height':
+            self.height_val = max(0, value) if value is not None else None
+        # 需要添加这行
+        self.hasAllInputs = (self.x_val is not None and 
+                            self.y_val is not None and 
+                            self.width_val is not None and
+                            self.height_val is not None)
+
+    def draw(self):
+        if self.hasAllInputs:
+            drawRect(self.x_val, self.y_val, self.width_val, self.height_val, 
+                    fill=None, border='blue')
+
 
 class Slider(Component):
     def __init__(self, app, name='Slider\n--->', min_val=0, max_val=100):
@@ -127,6 +179,12 @@ class Slider(Component):
         drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
         # Draw value label
         drawLabel(f'{self.value:.0f}', handleX, self.y - 10)
+
+    def updateValue(self):
+        # 当滑块值改变时，通知所有连接的输出节点
+        for node in self.outputNodes:
+            for connection in node.connections:
+                connection.end_node.receiveValue(self.value)
         
 class Node:
     def __init__(self, name, component, isOutput, data):
@@ -158,14 +216,22 @@ class Node:
     def addConnection(self, connection):
         if self.isOutput:
             self.connections.append(connection)
+            # 如果是输出节点，立即传递值给连接的输入节点
+            if isinstance(self.component, Slider):
+                for conn in self.connections:
+                    conn.end_node.receiveValue(self.component.value)
         else:
-            # If input node already has a connection, remove it
+            # 输入节点逻辑保持不变
             if self.connection is not None:
                 for conn in app.connections:
                     if conn.end_node == self:
                         app.connections.remove(conn)
                         break
             self.connection = connection
+    
+    def receiveValue(self, value):
+        # 接收值并更新组件
+        self.component.updateValue(self.name, value)
 
     def removeConnection(self, connection):
         if self.isOutput:

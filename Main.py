@@ -1,5 +1,5 @@
 from cmu_graphics import *
-from Components import Slider, CircleCreator, RectCreator
+from Components import Slider, CircleCreator, RectCreator, TypicleComponent
 from Connection import Connections
 from Toggle import Toggle
 from ToolbarButton import ToolbarButton
@@ -126,6 +126,11 @@ def redrawAll(app):
     drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
     for toggle in app.toggles:
         toggle.drawUI()
+    
+    for component in app.components:
+        if isinstance(component, TypicleComponent) and component.hasAllInputs:
+            component.draw()
+            print('drawashape')
 
 def onMouseMove(app, mouseX, mouseY):
     # Update mouse position for preview
@@ -179,6 +184,7 @@ def onMousePress(app, mouseX, mouseY):
     # 检查toolbar button
     for button in app.buttomList:
         if button.hitTest(mouseX, mouseY):
+            hitComponent = False
             app.isDraggingNewComponent = True
             app.draggedComponentType = button.component
             return
@@ -186,6 +192,7 @@ def onMousePress(app, mouseX, mouseY):
     # 检查toolbar tab
     for tab in app.tabs:
         if tab.hitTest(mouseX, mouseY):
+            hitComponent = False
             for t in app.tabs:
                 t.isActive = (t == tab)
             app.activeCategory = tab.category
@@ -266,6 +273,9 @@ def onMouseDrag(app, mouseX, mouseY):
                 normalized_x = (mouseX - app.selectedComponent.x) / app.selectedComponent.width
                 app.selectedComponent.value = app.selectedComponent.min_val + normalized_x * (app.selectedComponent.max_val - app.selectedComponent.min_val)
                 app.selectedComponent.value = max(app.selectedComponent.min_val, min(app.selectedComponent.max_val, app.selectedComponent.value))
+                app.selectedComponent.updateValue()  # 添加这行
+                
+
             elif app.selectedComponent.isDragging:  # 滑块整体拖动
                 newX = mouseX - app.selectedComponent.width / 2
                 newY = mouseY - app.selectedComponent.height / 2
