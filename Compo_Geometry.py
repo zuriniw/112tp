@@ -6,6 +6,7 @@ class CircleCreator(TypicleComponent):
         inputs = ['x', 'y', 'radius']
         outputs = ['theCircle']
         name = 'Draw\nCirc\nO'
+        self.isGeo = True
         super().__init__(app, inputs, outputs, name)
         self.x_val = None
         self.y_val = None
@@ -35,6 +36,7 @@ class RectCreator(TypicleComponent):
         inputs = ['x', 'y', 'width', 'height']
         outputs = ['theRect']
         name = 'Draw\nRect\n⬚'
+        self.isGeo = True
         super().__init__(app, inputs, outputs, name)
         self.x_val = None
         self.y_val = None

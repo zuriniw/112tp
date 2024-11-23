@@ -63,7 +63,7 @@ class TypicleComponent(Component):
         labelY = self.y + self.height / 2 - labelHeight / 2 + app.borderY/2
         for line in labelLines:
             drawLabel(line, labelX, labelY, fill='white', font = 'symbols')
-            labelY += app.textHeight + app.paddingY / 2
+            labelY += app.textHeight + app.paddingY / 8
 
         # 调整输出标签的绘制位置以居中
         y_output = self.y + (self.height - self.outputHeight) / 2 + app.borderY/2
@@ -72,51 +72,6 @@ class TypicleComponent(Component):
             drawLabel(outputLabel, outputX, y_output)
             y_output += app.textHeight + app.paddingY
 
-
-class Slider(Component):
-    def __init__(self, app, name='Slider\n--->', min_val=0, max_val=300):
-        inputs = []
-        outputs = ['value']
-        super().__init__(app)
-
-        self.name = name
-        self.outputs = outputs
-        self.outputNodes = [Node(output, self, True, None) for output in outputs]
-        ### have 
-        self.min_val = min_val
-        self.max_val = max_val
-
-        self.value = (min_val + max_val) / 2
-
-        self.width = 120
-        self.height = 32
-        self.handleWidth = 12
-        self.isDraggingHandle = False
-        self.outputHeight = app.textHeight
-        
-        self.updateNodePositions()
-    
-    def hitTestHandle(self, mouseX, mouseY):
-        handleX = self.x + ((self.value - self.min_val) / (self.max_val - self.min_val)) * self.width
-        return (handleX - 2 <= mouseX <= handleX + self.handleWidth + 2) and (self.y <= mouseY <= self.y + self.height)
-
-    def drawUI(self):
-        # Draw node
-        for node in self.outputNodes:
-            node.drawNode()
-        # Draw background
-        drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
-        # Draw handle
-        handleX = self.x + ((self.value - self.min_val) / (self.max_val - self.min_val)) * (self.width-self.handleWidth)
-        drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
-        # Draw value label
-        drawLabel(f'{self.value:.0f}', handleX, self.y - 10)
-
-    def updateValue(self):
-        # 当滑块值改变时，通知所有连接的输出节点
-        for node in self.outputNodes:
-            for connection in node.connections:
-                connection.end_node.receiveValue(self.value)
         
 class Node:
     def __init__(self, name, component, isOutput, data):
@@ -149,11 +104,11 @@ class Node:
     def addConnection(self, connection):
         if self.isOutput:
             self.connections.append(connection)
-            # 如果是输出节点，立即传递值给连接的输入节点
-            for conn in self.connections:
-                conn.end_node.receiveValue(self.component.value)
+            # 如果输出节点有值，立即传递
+            if self.value is not None:
+                for conn in self.connections:
+                    conn.end_node.receiveValue(self.value)
         else:
-            # 输入节点逻辑保持不变
             if self.connection is not None:
                 for conn in app.connections:
                     if conn.end_node == self:

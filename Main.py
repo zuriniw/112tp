@@ -1,6 +1,7 @@
 from cmu_graphics import *
-from Components import Slider, TypicleComponent
-from Compo_Geometry import CircleCreator, RectCreator
+from Components import *
+from Compo_Geometry import *
+from Compo_Math import *
 from Connection import Connections
 from Toggle import Toggle
 from ToolbarButton import ToolbarButton
@@ -65,7 +66,7 @@ def onAppStart(app):
 
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
-        'Math': [Slider],
+        'Math': [Slider, Reverse],
         'Manipulation': [],
         'Analyze': [],
         'Vector':[]
@@ -83,7 +84,7 @@ def onAppStart(app):
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
-    app.currButtomList = [ToolbarButton(app, app.borderX + currbuttomCompoList.index(buttomCompo) * (50 + app.paddingX), 40, buttomCompo) for buttomCompo in currbuttomCompoList]
+    app.currButtomList = [ToolbarButton(app, app.borderX + currbuttomCompoList.index(buttomCompo) * (60 + app.paddingX), 40, buttomCompo) for buttomCompo in currbuttomCompoList]
     
 
 def drawToolbar(app):
@@ -188,7 +189,7 @@ def redrawAll(app):
         toggle.drawUI()
     
     for component in app.components:
-        if isinstance(component, TypicleComponent) and component.hasAllInputs:
+        if isinstance(component, TypicleComponent) and component.isGeo:
             component.draw()
     
 
@@ -246,7 +247,7 @@ def onMousePress(app, mouseX, mouseY):
     # 检查toolbar button
     for button in app.currButtomList:
         if button.hitTest(mouseX, mouseY):
-            hitComponent = False
+            app.selectedComponent = None
             app.isDraggingNewComponent = True
             app.draggedComponentType = button.component
             return
@@ -254,7 +255,7 @@ def onMousePress(app, mouseX, mouseY):
     # 检查toolbar tab
     for tab in app.tabs:
         if tab.hitTest(mouseX, mouseY):
-            hitComponent = False
+            app.selectedComponent = None
             for t in app.tabs:
                 t.isActive = (t == tab)
             app.activeCategory = tab.category
@@ -311,6 +312,7 @@ def onMousePress(app, mouseX, mouseY):
                 component.isDragging = True
             app.lastClickTime = currentTime
             break
+
     if not hitComponent:
         app.selectedComponent = None
 
@@ -333,16 +335,16 @@ def onMouseDrag(app, mouseX, mouseY):
         if isinstance(app.selectedComponent, Slider):
             if app.selectedComponent.isDraggingHandle:  # 滑块手柄拖动
                 normalized_x = (mouseX - app.selectedComponent.x) / app.selectedComponent.width
-                app.selectedComponent.value = app.selectedComponent.min_val + normalized_x * (app.selectedComponent.max_val - app.selectedComponent.min_val)
-                app.selectedComponent.value = max(app.selectedComponent.min_val, min(app.selectedComponent.max_val, app.selectedComponent.value))
-                app.selectedComponent.updateValue()  # 添加这行
-                
+                newValue = app.selectedComponent.min_val + normalized_x * (app.selectedComponent.max_val - app.selectedComponent.min_val)
+                newValue = max(app.selectedComponent.min_val, min(app.selectedComponent.max_val, newValue))
+                app.selectedComponent.updateValue(newValue)  # 传入计算好的新值
 
             elif app.selectedComponent.isDragging:  # 滑块整体拖动
                 newX = mouseX - app.selectedComponent.width / 2
                 newY = mouseY - app.selectedComponent.height / 2
                 app.selectedComponent.x, app.selectedComponent.y = keepWithinBounds(app, newX, newY)
                 app.selectedComponent.updateNodePositions()
+
         elif app.selectedComponent.isDragging:  # 普通组件拖动
             newX = mouseX - app.selectedComponent.width / 2
             newY = mouseY - app.selectedComponent.height / 2

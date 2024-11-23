@@ -3,7 +3,7 @@ class ToolbarButton:
     def __init__(self, app, x, y, component):
         self.x = x
         self.y = y
-        self.width = 50
+        self.width = 60
         self.height = 60
         self.component = component
         self.isHovering = False
