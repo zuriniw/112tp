@@ -175,16 +175,7 @@ def onMousePress(app, mouseX, mouseY):
                 return
             app.lastClickTime = currentTime
             return
-    
-    # 检查toggle
-    for toggle in app.toggles:
-        if toggle.hitTest(mouseX, mouseY):
-            toggle.isOn = not toggle.isOn
-            var_name = 'is'+toggle.name.replace(' ', '')
-            setattr(app, var_name, toggle.isOn)
-            app.toggleStates[toggle.name] = toggle.isOn
-            return
-    
+        
     # 检查toolbar button
     for button in app.buttomList:
         if button.hitTest(mouseX, mouseY):
@@ -200,42 +191,57 @@ def onMousePress(app, mouseX, mouseY):
             app.activeCategory = tab.category
             initToolbar(app)
             return
-    
-    # 最后检查组件
+        
+    # 检查toggle
+    for toggle in app.toggles:
+        if toggle.hitTest(mouseX, mouseY):
+            toggle.isOn = not toggle.isOn
+            # Generate mapping dynamically by converting toggle name to variable name
+            var_name = 'is'+toggle.name.replace(' ', '')
+            setattr(app, var_name, toggle.isOn)
+            app.toggleStates[toggle.name] = toggle.isOn
+            return
+        
+        
     hitComponent = False
+    # 最后检查组件
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
             hitComponent = True
-            if currentTime - app.lastClickTime < 0.3:  # 双击删除
-                # 删除相关连接
+            # 1////双击删除
+            if currentTime - app.lastClickTime < 0.3:
+                # 删除与该组件相关的所有连接
                 connectionsToRemove = []
                 for connection in app.connections:
                     if (connection.start_node.component == component or 
                         connection.end_node.component == component):
                         connectionsToRemove.append(connection)
+                
+                # 从 app.connections 中移除这些连接
                 for connection in connectionsToRemove:
                     app.connections.remove(connection)
+                
                 # 删除组件
                 app.components.remove(component)
                 app.selectedComponent = None
                 return
-            
-            else:
-                # 修改这部分的 Slider 处理逻辑
-                if isinstance(component, Slider):
-                    if component.hitTestHandle(mouseX, mouseY):
-                        component.isDraggingHandle = True
-                        app.selectedComponent = component
-                    else:
-                        app.selectedComponent = component
-                        component.isDragging = True
-                        component.isDraggingHandle = False
+            # 2///拖动手柄
+            if isinstance(component, Slider):
+                if component.hitTestHandle(mouseX, mouseY):
+                    # 点击到滑块手柄
+                    component.isDraggingHandle = True
+                    app.selectedComponent = component
                 else:
+                    # 点击到滑块其他部分，只设置拖动状态
                     app.selectedComponent = component
                     component.isDragging = True
+                    component.isDraggingHandle = False
+            # 3///点到组件
+            else:
+                app.selectedComponent = component
+                component.isDragging = True
             app.lastClickTime = currentTime
             break
-    
     if not hitComponent:
         app.selectedComponent = None
 
