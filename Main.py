@@ -220,17 +220,19 @@ def onMousePress(app, mouseX, mouseY):
                 app.selectedComponent = None
                 return
             
-            # 单击选中
-            if isinstance(component, Slider):
-                if component.hitTestHandle(mouseX, mouseY):
-                    component.isDraggingHandle = True
-                    app.selectedComponent = component
+            else:
+                # 修改这部分的 Slider 处理逻辑
+                if isinstance(component, Slider):
+                    if component.hitTestHandle(mouseX, mouseY):
+                        component.isDraggingHandle = True
+                        app.selectedComponent = component
+                    else:
+                        app.selectedComponent = component
+                        component.isDragging = True
+                        component.isDraggingHandle = False
                 else:
                     app.selectedComponent = component
                     component.isDragging = True
-            else:
-                app.selectedComponent = component
-                component.isDragging = True
             app.lastClickTime = currentTime
             break
     
