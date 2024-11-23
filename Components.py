@@ -13,6 +13,10 @@ class Component:
     def updateNodePositions(self):
         for node in self.inputNodes + self.outputNodes:
             node.updatePosition()
+            if hasattr(self, 'preview'):  # For preview components
+                self.preview.x = self.x
+                self.preview.y = self.y
+                self.preview.updateNodePositions()
 
     def hitTest(self, mouseX, mouseY):
         return (self.x <= mouseX <= self.x + self.width) and (self.y <= mouseY <= self.y + self.height)

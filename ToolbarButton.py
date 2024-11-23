@@ -1,5 +1,4 @@
 from cmu_graphics import *
-
 class ToolbarButton:
     def __init__(self, app, x, y, component):
         self.x = x

@@ -8,6 +8,9 @@ from ToolbarTab import ToolbarTab
 import time
 
 def onAppStart(app):
+    app.mouseX = app.width/2
+    app.mouseY = app.height/2
+
     app.width = 1512
     app.height = 982
     app.toolbarHeight = 110
@@ -61,7 +64,7 @@ def onAppStart(app):
         'Line': []
     }
     initToolbar(app)
-    
+
     # Toolbar tab
     app.tabs = []
     tabX = 0
@@ -93,35 +96,59 @@ def drawPlayground(app):
 def redrawAll(app):
     drawPlayground(app)
     drawToolbar(app)
+    
     if app.isCompDisplay:
-        # Draw components
+        # Draw existing components
         for component in app.components:
             component.drawUI()
-        
+            
         # Draw connections
         for connection in app.connections:
             connection.draw()
-        
-        # Draw temporary connection while dragging
+            
+        # Draw temporary connection
         if app.tempConnection:
             node, mouseX, mouseY = app.tempConnection
-            drawLine(node.x, node.y, mouseX, mouseY, 
-                    lineWidth=2, fill='lightGrey', dashes = (4,2))
+            drawLine(node.x, node.y, mouseX, mouseY,
+                    lineWidth=2, fill='lightGrey', dashes=(4,2))
         
-        # Draw component being dragged
+        # Draw component being dragged - Fix preview movement
         if app.isDraggingNewComponent and app.draggedComponentType:
             preview = app.draggedComponentType(app)
+            # Update preview position based on mouse
             preview.x = app.mouseX - preview.width/2
             preview.y = app.mouseY - preview.height/2
+            # Update node positions before drawing
+            preview.updateNodePositions()
+            # Draw the preview
             preview.drawUI()
-    
+
     drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
     for toggle in app.toggles:
         toggle.drawUI()
 
-    
-
 def onMouseMove(app, mouseX, mouseY):
+    # Update mouse position for preview
+    app.mouseX = mouseX
+    app.mouseY = mouseY
+    
+    # 处理节点悬停
+    for component in app.components:
+        for node in component.inputNodes + component.outputNodes:
+            if node.hitTest(mouseX, mouseY):
+                node.isHovering = True
+            else:
+                node.isHovering = False
+    
+    # 处理按钮悬停
+    for button in app.buttomList:
+        button.isHovering = button.hitTest(mouseX, mouseY)
+    
+    # 更新预览组件位置
+    if app.isDraggingNewComponent:
+        app.mouseX = mouseX
+        app.mouseY = mouseY
+
     # if is hovering over a node, it highlights
     for component in app.components:
         for node in component.inputNodes + component.outputNodes:
@@ -153,95 +180,111 @@ def onMousePress(app, mouseX, mouseY):
     for toggle in app.toggles:
         if toggle.hitTest(mouseX, mouseY):
             toggle.isOn = not toggle.isOn
-            # Generate mapping dynamically by converting toggle name to variable name
             var_name = 'is'+toggle.name.replace(' ', '')
             setattr(app, var_name, toggle.isOn)
             app.toggleStates[toggle.name] = toggle.isOn
             return
     
-    # 检查toolbar buttom
-
-
-    # 检查toobar tab
+    # 检查toolbar button
+    for button in app.buttomList:
+        if button.hitTest(mouseX, mouseY):
+            app.isDraggingNewComponent = True
+            app.draggedComponentType = button.component
+            return
+    
+    # 检查toolbar tab
     for tab in app.tabs:
         if tab.hitTest(mouseX, mouseY):
-            # 更新活动状态
             for t in app.tabs:
                 t.isActive = (t == tab)
             app.activeCategory = tab.category
-            # 重新初始化工具栏按钮
             initToolbar(app)
             return
-        
-    hitComponent = False
+    
     # 最后检查组件
+    hitComponent = False
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
             hitComponent = True
-            # 1////双击删除
-            if currentTime - app.lastClickTime < 0.3:
-                # 删除与该组件相关的所有连接
+            if currentTime - app.lastClickTime < 0.3:  # 双击删除
+                # 删除相关连接
                 connectionsToRemove = []
                 for connection in app.connections:
                     if (connection.start_node.component == component or 
                         connection.end_node.component == component):
                         connectionsToRemove.append(connection)
-                
-                # 从 app.connections 中移除这些连接
                 for connection in connectionsToRemove:
                     app.connections.remove(connection)
-                
                 # 删除组件
                 app.components.remove(component)
                 app.selectedComponent = None
                 return
-            # 2///拖动手柄
+            
+            # 单击选中
             if isinstance(component, Slider):
                 if component.hitTestHandle(mouseX, mouseY):
-                    # 点击到滑块手柄
                     component.isDraggingHandle = True
                     app.selectedComponent = component
                 else:
-                    # 点击到滑块其他部分，只设置拖动状态
                     app.selectedComponent = component
                     component.isDragging = True
-                    component.isDraggingHandle = False
-            # 3///点到组件
             else:
                 app.selectedComponent = component
                 component.isDragging = True
             app.lastClickTime = currentTime
             break
+    
     if not hitComponent:
-        app.selectedComponent = None        
+        app.selectedComponent = None
 
 def onMouseDrag(app, mouseX, mouseY):
-    if app.draggingNode:
-        # 处理节点拖动和悬停检测
+    app.mouseX = mouseX
+    app.mouseY = mouseY
+    
+    if app.draggingNode:  # 处理节点拖动连接
         app.tempConnection = (app.draggingNode, mouseX, mouseY)
-        
-        # 检查是否悬停在任何输入节点上
+        # 检查输入节点悬停
         for component in app.components:
-            for node in component.inputNodes:  # 只检查输入节点
-                if node.hitTest(mouseX, mouseY):
-                    node.isHovering = True
-                else:
-                    node.isHovering = False
-                    
-    elif app.selectedComponent:  # 只处理被选中的组件
-        if isinstance(app.selectedComponent, Slider) and app.selectedComponent.isDraggingHandle:
-            # 更新滑块值
-            normalized_x = (mouseX - app.selectedComponent.x) / app.selectedComponent.width
-            app.selectedComponent.value = app.selectedComponent.min_val + normalized_x * (app.selectedComponent.max_val - app.selectedComponent.min_val)
-            app.selectedComponent.value = max(app.selectedComponent.min_val, min(app.selectedComponent.max_val, app.selectedComponent.value))
-        elif app.selectedComponent.isDragging:
-            # 普通拖动
+            for node in component.inputNodes:
+                node.isHovering = node.hitTest(mouseX, mouseY)
+    
+    elif app.isDraggingNewComponent:  # 处理新组件预览拖动
+        app.mouseX = mouseX
+        app.mouseY = mouseY
+    
+    elif app.selectedComponent:  # 处理已有组件
+        if isinstance(app.selectedComponent, Slider):
+            if app.selectedComponent.isDraggingHandle:  # 滑块手柄拖动
+                normalized_x = (mouseX - app.selectedComponent.x) / app.selectedComponent.width
+                app.selectedComponent.value = app.selectedComponent.min_val + normalized_x * (app.selectedComponent.max_val - app.selectedComponent.min_val)
+                app.selectedComponent.value = max(app.selectedComponent.min_val, min(app.selectedComponent.max_val, app.selectedComponent.value))
+            elif app.selectedComponent.isDragging:  # 滑块整体拖动
+                newX = mouseX - app.selectedComponent.width / 2
+                newY = mouseY - app.selectedComponent.height / 2
+                app.selectedComponent.x, app.selectedComponent.y = keepWithinBounds(app, newX, newY)
+                app.selectedComponent.updateNodePositions()
+        elif app.selectedComponent.isDragging:  # 普通组件拖动
             newX = mouseX - app.selectedComponent.width / 2
             newY = mouseY - app.selectedComponent.height / 2
             app.selectedComponent.x, app.selectedComponent.y = keepWithinBounds(app, newX, newY)
             app.selectedComponent.updateNodePositions()
 
 def onMouseRelease(app, mouseX, mouseY):
+    if app.isDraggingNewComponent and app.draggedComponentType:
+        # 确保在有效区域内
+        if mouseY > app.toolbarHeight:
+            # 创建新组件
+            newComponent = app.draggedComponentType(app)
+            newComponent.x = mouseX - newComponent.width/2
+            newComponent.y = mouseY - newComponent.height/2
+            app.components.append(newComponent)
+            newComponent.updateNodePositions()
+        
+        # 重置拖动状态
+        app.isDraggingNewComponent = False
+        app.draggedComponentType = None
+        return
+        
     if app.draggingNode:
         start_node = app.draggingNode
         for component in app.components:
