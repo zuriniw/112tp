@@ -73,76 +73,8 @@ class TypicleComponent(Component):
             y_output += app.textHeight + app.paddingY
 
 
-class CircleCreator(TypicleComponent):
-    def __init__(self, app):
-        inputs = ['x', 'y', 'radius']
-        outputs = ['theCircle']
-        name = 'Draw\nCirc\nO'
-        super().__init__(app, inputs, outputs, name)
-        self.x_val = None
-        self.y_val = None
-        self.radius_val = None
-        self.hasAllInputs = (self.x_val is not None and 
-                       self.y_val is not None and 
-                       self.radius_val is not None)
-    
-    def updateValue(self, nodeName, value):
-        if nodeName == 'x':
-            self.x_val = value
-        elif nodeName == 'y':
-            self.y_val = value
-        elif nodeName == 'radius':
-            self.radius_val = max(0, value) if value is not None else None
-        # 需要添加这行
-        self.hasAllInputs = (self.x_val is not None and 
-                            self.y_val is not None and 
-                            self.radius_val is not None)
-
-    
-    def draw(self):
-        # Only draw circle if all inputs are valid
-        if self.hasAllInputs:
-            drawCircle(self.x_val, self.y_val, self.radius_val, 
-                      fill=None, border='blue')
-                      
-class RectCreator(TypicleComponent):
-    def __init__(self, app):
-        inputs = ['x', 'y', 'width', 'height']
-        outputs = ['theRect']
-        name = 'Draw\nRect\n⬚'
-        super().__init__(app, inputs, outputs, name)
-        self.x_val = None
-        self.y_val = None
-        self.width_val = None
-        self.height_val = None
-        self.hasAllInputs = (self.x_val is not None and 
-                            self.y_val is not None and 
-                            self.width_val is not None and 
-                            self.height_val is not None)
-    
-    def updateValue(self, nodeName, value):
-        if nodeName == 'x':
-            self.x_val = value
-        elif nodeName == 'y':
-            self.y_val = value
-        elif nodeName == 'width':
-            self.width_val = max(0, value) if value is not None else None
-        elif nodeName == 'height':
-            self.height_val = max(0, value) if value is not None else None
-        # 需要添加这行
-        self.hasAllInputs = (self.x_val is not None and 
-                            self.y_val is not None and 
-                            self.width_val is not None and
-                            self.height_val is not None)
-
-    def draw(self):
-        if self.hasAllInputs:
-            drawRect(self.x_val, self.y_val, self.width_val, self.height_val, 
-                    fill=None, border='blue')
-
-
 class Slider(Component):
-    def __init__(self, app, name='Slider\n--->', min_val=0, max_val=100):
+    def __init__(self, app, name='Slider\n--->', min_val=0, max_val=300):
         inputs = []
         outputs = ['value']
         super().__init__(app)
@@ -158,7 +90,7 @@ class Slider(Component):
 
         self.width = 120
         self.height = 32
-        self.handleWidth = 8 
+        self.handleWidth = 12
         self.isDraggingHandle = False
         self.outputHeight = app.textHeight
         
@@ -213,13 +145,13 @@ class Node:
 
     def hitTest(self, mouseX, mouseY):
         return (self.x - self.r <= mouseX <= self.x + self.r) and (self.y - self.r <= mouseY <= self.y + self.r)
+    
     def addConnection(self, connection):
         if self.isOutput:
             self.connections.append(connection)
             # 如果是输出节点，立即传递值给连接的输入节点
-            if isinstance(self.component, Slider):
-                for conn in self.connections:
-                    conn.end_node.receiveValue(self.component.value)
+            for conn in self.connections:
+                conn.end_node.receiveValue(self.component.value)
         else:
             # 输入节点逻辑保持不变
             if self.connection is not None:

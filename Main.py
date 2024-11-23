@@ -1,5 +1,6 @@
 from cmu_graphics import *
-from Components import Slider, CircleCreator, RectCreator, TypicleComponent
+from Components import Slider, TypicleComponent
+from Compo_Geometry import CircleCreator, RectCreator
 from Connection import Connections
 from Toggle import Toggle
 from ToolbarButton import ToolbarButton
@@ -8,11 +9,13 @@ from ToolbarTab import ToolbarTab
 import time
 
 def onAppStart(app):
-    app.mouseX = app.width/2
-    app.mouseY = app.height/2
 
     app.width = 1512
     app.height = 982
+
+    app.mouseX = app.width/2
+    app.mouseY = app.height/2
+
     app.toolbarHeight = 110
     app.components = []
     app.selectedComponent = None
@@ -27,12 +30,14 @@ def onAppStart(app):
     app.tempConnection = None
 
     app.isCompDisplay = True
-    app.isGridDisplay = False
+    app.isAxisDisplay = True
+    app.isGridDisplay = True
     app.isDotDisplay = False
     app.isGuidbookDisplay = False
 
     app.toggleStates = {
         'Comp Display': app.isCompDisplay,
+        'Axis Display': app.isAxisDisplay,
         'Grid Display': app.isGridDisplay,
         'Dot Display':app.isDotDisplay,
         'Guidbook Display':app.isGuidbookDisplay
@@ -50,44 +55,96 @@ def onAppStart(app):
 
     app.centerLabelWidth = 80
 
-    # Toolbar organization
-    app.categories = ['Geometry', 'Math', 'Other', 'Line']
-    app.activeCategory = 'Geometry'  # Default active category
+    #grid
+    app.x0 = app.togglePanelStartX / 2
+    app.y0 = app.height/2
 
+    # Toolbar organization
     app.isDraggingNewComponent = False
     app.draggedComponentType = None
 
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider],
-        'Other': [],
-        'Line': []
+        'Manipulation': [],
+        'Analyze': [],
+        'Vector':[]
     }
-    initToolbar(app)
-
+    app.activeCategory = 'Geometry'  # Default active category
+    loadToolbar(app)
     # Toolbar tab
     app.tabs = []
     tabX = 0
-    for category in app.categories:
+    for category in list(app.componentTypes.keys()):
         isActive = (category == app.activeCategory)
         tab = ToolbarTab(tabX, 0, category, isActive)
         app.tabs.append(tab)
         tabX += tab.width - 2
 
-def initToolbar(app): 
-    buttomCompoList = app.componentTypes[app.activeCategory]
-    app.buttomList = [ToolbarButton(app, app.borderX + buttomCompoList.index(buttomCompo) * (50 + app.paddingX), 40, buttomCompo) for buttomCompo in buttomCompoList]
+def loadToolbar(app): 
+    currbuttomCompoList = app.componentTypes[app.activeCategory]
+    app.currButtomList = [ToolbarButton(app, app.borderX + currbuttomCompoList.index(buttomCompo) * (50 + app.paddingX), 40, buttomCompo) for buttomCompo in currbuttomCompoList]
+    
 
 def drawToolbar(app):
     tabHeight = 30
     drawLine(0, app.toolbarHeight, app.width, app.toolbarHeight)
     drawLine(0, tabHeight-1, app.width, tabHeight-1)
-    # 绘制标签页
+    # 绘制标签
     for tab in app.tabs:
         tab.drawUI()
-    # 绘制按钮
-    for button in app.buttomList:
+    # 绘制当前标签页里的component按钮
+    for button in app.currButtomList:
         button.drawUI()
+
+def drawAxis(app):
+    if app.isAxisDisplay:
+        # Draw axis
+        drawLine(app.borderX, app.y0, app.togglePanelStartX-app.borderX, app.y0, arrowStart=True, arrowEnd=True, opacity = 10)
+        drawLine(app.x0, app.toolbarHeight + app.borderY, app.x0, app.height - app.borderY, arrowStart=True, arrowEnd=True, opacity = 10)
+        
+
+
+def drawGrid(app):
+    if app.isGridDisplay:
+        # Define grid parameters
+        gridSize = 30
+        
+        # Calculate grid counts from origin to edges
+        rightGrids = int((app.togglePanelStartX - app.x0) // gridSize)
+        leftGrids = int((app.x0 - app.borderX) // gridSize)
+        upGrids = int((app.y0 - app.toolbarHeight) // gridSize)
+        downGrids = int((app.height - app.y0) // gridSize)
+        
+        # Draw vertical lines
+        for i in range(-leftGrids, rightGrids + 1):
+            x = app.x0 + i * gridSize
+            drawLine(x, app.toolbarHeight, x, app.height,
+                    fill='lightGrey', lineWidth=0.5)
+        
+        # Draw horizontal lines
+        for j in range(-upGrids, downGrids + 1):
+            y = app.y0 + j * gridSize
+            drawLine(app.borderX, y, app.togglePanelStartX, y,
+                    fill='lightGrey', lineWidth=0.5)
+            
+def drawDot(app):
+    if app.isDotDisplay:
+        gridSize = 30
+        
+        # Calculate grid counts from origin to edges
+        rightGrids = int((app.togglePanelStartX - app.x0) // gridSize)
+        leftGrids = int((app.x0 - app.borderX) // gridSize)
+        upGrids = int((app.y0 - app.toolbarHeight) // gridSize)
+        downGrids = int((app.height - app.y0) // gridSize)
+        
+        # Draw dots at grid intersections
+        for i in range(-leftGrids, rightGrids + 1):
+            for j in range(-upGrids, downGrids + 1):
+                x = app.x0 + i * gridSize
+                y = app.y0 + j * gridSize
+                drawCircle(x, y, 1, fill='darkgrey')
+
 
 def drawPlayground(app):
     # big background
@@ -96,6 +153,9 @@ def drawPlayground(app):
 def redrawAll(app):
     drawPlayground(app)
     drawToolbar(app)
+    drawGrid(app)
+    drawAxis(app)
+    drawDot(app)
     
     if app.isCompDisplay:
         # Draw existing components
@@ -110,7 +170,7 @@ def redrawAll(app):
         if app.tempConnection:
             node, mouseX, mouseY = app.tempConnection
             drawLine(node.x, node.y, mouseX, mouseY,
-                    lineWidth=2, fill='lightGrey', dashes=(4,2))
+                    lineWidth=2, fill='black', dashes=(4,3))
         
         # Draw component being dragged - Fix preview movement
         if app.isDraggingNewComponent and app.draggedComponentType:
@@ -130,7 +190,9 @@ def redrawAll(app):
     for component in app.components:
         if isinstance(component, TypicleComponent) and component.hasAllInputs:
             component.draw()
-            print('drawashape')
+    
+
+
 
 def onMouseMove(app, mouseX, mouseY):
     # Update mouse position for preview
@@ -146,7 +208,7 @@ def onMouseMove(app, mouseX, mouseY):
                 node.isHovering = False
     
     # 处理按钮悬停
-    for button in app.buttomList:
+    for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
     
     # 更新预览组件位置
@@ -182,7 +244,7 @@ def onMousePress(app, mouseX, mouseY):
             return
         
     # 检查toolbar button
-    for button in app.buttomList:
+    for button in app.currButtomList:
         if button.hitTest(mouseX, mouseY):
             hitComponent = False
             app.isDraggingNewComponent = True
@@ -196,7 +258,7 @@ def onMousePress(app, mouseX, mouseY):
             for t in app.tabs:
                 t.isActive = (t == tab)
             app.activeCategory = tab.category
-            initToolbar(app)
+            loadToolbar(app)
             return
         
     # 检查toggle
