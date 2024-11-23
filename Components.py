@@ -23,15 +23,14 @@ class TypicleComponent(Component):
         self.inputs = inputs
         self.outputs = outputs
         self.name = name
-
     
         self.centerLabelWidth = app.centerLabelWidth
         self.inputWidth = app.textWidth * max(len(inp) for inp in self.inputs)
         self.outputWidth = app.textWidth * max(len(output) for output in self.outputs)
         self.inputHeight = (app.textHeight + app.paddingY) * len(self.inputs) - app.paddingY
         self.outputHeight = (app.textHeight + app.paddingY) * len(self.outputs) - app.paddingY
-        self.width = app.paddingX * 2 + app.borderX * 2 + app.centerLabelWidth + self.inputWidth + self.outputWidth
-        self.height = max(self.inputHeight, self.outputHeight) + app.paddingY
+        self.height = max(self.inputHeight, self.outputHeight) + app.paddingY * 2 + app.borderY * 2
+        self.width = app.paddingX * 2 + app.borderX * 2 + self.centerLabelWidth + self.inputWidth + self.outputWidth
         self.inputNodes = [Node(input, self, False, None) for input in self.inputs]
         self.outputNodes = [Node(output, self, True, None) for output in self.outputs]
         self.updateNodePositions()
@@ -44,8 +43,8 @@ class TypicleComponent(Component):
         # Draw background
         drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
 
-        # Draw inputs
-        y_input = self.y + app.borderY
+        # 调整输入标签的绘制位置以居中
+        y_input = self.y + (self.height - self.inputHeight) / 2 + app.borderY/2
         for i, inputLabel in enumerate(self.inputs):
             x_input = self.x + app.borderX + self.inputWidth / 2
             drawLabel(inputLabel, x_input, y_input)
@@ -55,19 +54,20 @@ class TypicleComponent(Component):
         labelLines = self.name.split('\n')
         labelHeight = len(labelLines) * (app.textHeight + app.paddingY / 2) - app.paddingY / 2
         labelStartX = self.x + app.borderX + self.inputWidth + app.paddingX
-        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY * 1, border='black')
+        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY, border='black')
         labelX = labelStartX + app.centerLabelWidth / 2
         labelY = self.y + self.height / 2 - labelHeight / 2 + app.borderY/2
         for line in labelLines:
             drawLabel(line, labelX, labelY, fill='white', font = 'symbols')
             labelY += app.textHeight + app.paddingY / 2
 
-        # Draw outputs
-        y_output = self.y + (self.height - self.outputHeight) / 2 + app.textHeight/2
+        # 调整输出标签的绘制位置以居中
+        y_output = self.y + (self.height - self.outputHeight) / 2 + app.borderY/2
         for outputLabel in self.outputs:
             outputX = self.x + (app.borderX + self.inputWidth + app.paddingX + app.centerLabelWidth + app.paddingX) + self.outputWidth / 2
             drawLabel(outputLabel, outputX, y_output)
             y_output += app.textHeight + app.paddingY
+
 
 class CircleCreator(TypicleComponent):
     def __init__(self, app):
@@ -80,7 +80,7 @@ class CircleCreator(TypicleComponent):
 class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['x', 'y', 'width', 'height']
-        outputs = ['theRect']
+        outputs = ['theRect''x', 'y', 'width', 'height','x', 'y', 'width', 'height']
         name = 'Draw\nRect\n⚪'
 
         super().__init__(app, inputs, outputs, name)
@@ -133,7 +133,6 @@ class Node:
         self.isHovering = False
         self.x, self.y = 0, 0
         self.r = 5
-        # Add connection management
         self.connection = None  # For input nodes
         self.connections = []   # For output nodes
 
@@ -141,12 +140,12 @@ class Node:
         if self.isOutput:
             index = self.component.outputNodes.index(self)
             self.x = self.component.x + self.component.width
-            self.y = self.component.y + self.component.height / 2 - self.component.outputHeight / 2 + index * (app.paddingY + app.textHeight) + app.textHeight/2
+            self.y = self.component.y + (self.component.height - self.component.outputHeight) / 2 + index * (app.textHeight + app.paddingY) + app.textHeight / 2
         else:
             index = self.component.inputNodes.index(self)
             self.x = self.component.x
-            self.y = self.component.y + app.borderY + index * (app.paddingY + app.textHeight)
-
+            self.y = self.component.y + (self.component.height - self.component.inputHeight) / 2  + index * (app.textHeight + app.paddingY) + app.textHeight / 2
+    
     def drawNode(self):
         drawCircle(self.x, self.y, self.r, fill='black' if self.isHovering else 'white', border='black')
 
