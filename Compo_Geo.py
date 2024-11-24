@@ -56,7 +56,7 @@ class RectCreator(TypicleComponent):
                             self.height_val is not None)
 
     def draw(self):
-        if self.hasAllInputs and self.width_val*self.height_val != 0:
+        if self.hasAllInputs and self.width_val != 0 and self.height_val != 0:
             x, y = self.point_val
             drawRect(x - self.width_val/2, y - self.height_val/2, 
                     self.width_val, self.height_val, 

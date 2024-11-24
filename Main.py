@@ -71,7 +71,7 @@ def onAppStart(app):
         'Math': [Slider, Reverse, Add, Subtract, Multiply, Divide],
         'Manipulation': [],
         'Analyze': [],
-        'Vector':[Point]
+        'Vector':[Point, Vector]
     }
     app.activeCategory = 'Geometry'  # Default active category
     loadToolbar(app)
@@ -482,6 +482,15 @@ def onKeyPress(app, key):
         newRectCreator = RectCreator(app)
         newRectCreator.updateNodePositions()
         app.components.append(newRectCreator)
+    elif key == 'p':
+        newPoint = Point(app)
+        newPoint.updateNodePositions()
+        app.components.append(newPoint)
+
+    elif key == 'backspace' or 'delete':
+        if app.selectedCompo != []:
+            for compo in app.selectedCompo:
+                app.components.remove(compo)
         
 def main():
     runApp()
