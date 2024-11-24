@@ -36,6 +36,10 @@ class Move(TypicleComponent):
             w = geo_val[2]
             h = geo_val[3]
             return [['rect', (x + dx, y + dy), w, h]]
+        elif currShape == 'point':
+            x, y = geo_val[1]
+            #r = geo_val[2]
+            return [['point', (x + dx, y + dy)]]
     
     def draw(self):
         if self.hasAllInputs:
@@ -58,6 +62,9 @@ class Move(TypicleComponent):
                 h = geo_val[3]
                 if w != 0 and h != 0:
                     drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue')
+            elif currShape == 'point':
+                #r = geo_val[2]
+                drawCircle(x + dx, y + dy, 4, fill='white', border='blue', borderWidth=2)
             
             drawLine(x, y, x + dx, y + dy, fill='lightBlue', dashes=True)
 

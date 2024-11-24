@@ -19,12 +19,14 @@ class Point(TypicleComponent):
             node.value = self.inputDefaultValue[node.name]
             
         # Initialize output with world coordinates
-        self.outputNodes[0].value = (app.x0, app.y0)
+        self.outputNodes[0].value = ['point', (app.x0, app.y0)]
         
     def calculate(self):
         x_val = self.inputNodes[0].value
         y_val = self.inputNodes[1].value
-        return [(x_val + app.x0, app.y0 - y_val)]
+        world_pos = (x_val + app.x0, app.y0 - y_val)
+        return [['point', world_pos]]
+
 
     
     def getDefaultValue(self, nodeName):
@@ -33,11 +35,12 @@ class Point(TypicleComponent):
 
 
     def draw(self):
-    # Get values directly from output node
         point_val = self.outputNodes[0].value
-        if point_val:
-            x, y = point_val
+        if point_val and isinstance(point_val, list):
+            _, pos = point_val  # 解包几何数据格式 ['point', (x,y)]
+            x, y = pos           # 解包坐标元组
             drawCircle(x, y, 4, fill='white', border='blue', borderWidth=2)
+
 
 
 
@@ -57,6 +60,11 @@ class Vector(TypicleComponent):
                 node.value = (app.x0+200, app.y0-200)
         
         self.hasAllInputs = True
+
+        self.inputDefaultValue = {
+        'start': (app.x0, app.y0),
+        'end': (app.x0+200, app.y0-200)
+        }
     
     def calculate(self):
         start = self.inputNodes[0].value
