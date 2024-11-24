@@ -51,11 +51,13 @@ class Move(TypicleComponent):
             
             if currShape == 'cir':
                 r = geo_val[2]
-                drawCircle(x + dx, y + dy, r, fill=None, border='blue')
+                if r != 0:
+                    drawCircle(x + dx, y + dy, r, fill=None, border='blue')
             elif currShape == 'rect':
                 w = geo_val[2]
                 h = geo_val[3]
-                drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue')
+                if w != 0 and h != 0:
+                    drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue')
             
             drawLine(x, y, x + dx, y + dy, fill='lightBlue', dashes=True)
 
