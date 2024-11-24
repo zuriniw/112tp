@@ -36,7 +36,7 @@ class Slider(Component):
         for node in self.outputNodes:
             node.drawNode()
         # Draw background
-        drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
+        drawRect(self.x, self.y, self.width, self.height, fill='white' if not self.isSelected else 'lightGrey', border='black')
         # Draw handle
         handleX = self.x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * (self.width-self.handleWidth)
         drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')

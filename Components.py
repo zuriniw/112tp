@@ -8,6 +8,7 @@ class Component:
         self.inputNodes = []
         self.outputNodes = []
         self.isDragging = False
+        self.isSelected = False
         self.updateNodePositions()
 
     def updateNodePositions(self):
@@ -45,7 +46,7 @@ class TypicleComponent(Component):
             node.drawNode()
 
         # Draw background
-        drawRect(self.x, self.y, self.width, self.height, fill='white', border='black')
+        drawRect(self.x, self.y, self.width, self.height, fill='white' if not self.isSelected else 'lightGrey', border='black')
 
         # 调整输入标签的绘制位置以居中
         y_input = self.y + (self.height - self.inputHeight) / 2 + app.borderY/2

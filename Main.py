@@ -20,6 +20,7 @@ def onAppStart(app):
 
     app.toolbarHeight = 110
     app.components = []
+    app.selectedCompo = []
     app.currDraggingComponent = None
     app.lastClickTime = time.time()
 
@@ -87,6 +88,9 @@ def onAppStart(app):
     app.isDragSelecting = False    # 是否正在拖拽选择
     app.dragFrameStart = None      # 拖拽起始位置
     app.dragFrameEnd = None        # 拖拽结束位置
+
+    # Drag move components
+    app.dragGroupOldMouseX,app.dragGroupOldMouseX = None, None 
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -165,7 +169,7 @@ def drawDraggingFrame(app):
         if x2 != x1 and y2 != y1:
             drawRect(min(x1, x2), min(y1, y2),
                     abs(x2 - x1), abs(y2 - y1),
-                    fill='cyan', border = 'cyan', opacity=10)
+                    fill='lightgrey', border = 'red', opacity=20, dashes = True)
 
 def redrawAll(app):
     drawPlayground(app)
@@ -326,8 +330,16 @@ def onMousePress(app, mouseX, mouseY):
                     component.isDraggingHandle = False
             # 3///点到组件
             else:
-                app.currDraggingComponent = component
-                component.isDragging = True
+                # 拖动单个
+                if app.selectedCompo == []:
+                    app.currDraggingComponent = component
+                    component.isDragging = True
+                # 拖动多个
+                else:
+                    app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+                    app.currDraggingComponent = app.selectedCompo
+                    for compo in app.selectedCompo:
+                        compo.isDragging = True
             app.lastClickTime = currentTime
             break
 
@@ -335,6 +347,13 @@ def onMousePress(app, mouseX, mouseY):
         app.currDraggingComponent = None
 
     if app.currDraggingComponent is None:  # 点击空白处
+        # 清空已经选中的compo
+        for compo in app.selectedCompo:
+            compo.isSelected = False
+
+        app.selectedCompo = []
+
+        # Prepare to drad and select
         app.isDragSelecting = True
         app.dragFrameStart = (mouseX, mouseY)
         app.dragFrameEnd = (mouseX, mouseY)
@@ -346,37 +365,48 @@ def onMouseDrag(app, mouseX, mouseY):
     if app.isDragSelecting:
         app.dragFrameEnd = (mouseX, mouseY)
         
-    elif app.draggingNode:  # 处理节点拖动连接
+    elif app.draggingNode:  # Handle node dragging for connections
         app.tempConnection = (app.draggingNode, mouseX, mouseY)
-        # 检查输入节点悬停
+        # Check for hovering over input nodes
         for component in app.components:
             for node in component.inputNodes:
                 node.isHovering = node.hitTest(mouseX, mouseY)
-    
-    elif app.isDraggingNewComponent:  # 处理新组件预览拖动
-        app.mouseX = mouseX
-        app.mouseY = mouseY
-    
-    elif app.currDraggingComponent:  # 处理已有组件
-        if isinstance(app.currDraggingComponent, Slider):
-            if app.currDraggingComponent.isDraggingHandle:  # 滑块手柄拖动
-                normalized_x = (mouseX - app.currDraggingComponent.x) / app.currDraggingComponent.width
-                newValue = app.currDraggingComponent.min_val + normalized_x * (app.currDraggingComponent.max_val - app.currDraggingComponent.min_val)
-                newValue = max(app.currDraggingComponent.min_val, min(app.currDraggingComponent.max_val, newValue))
-                app.currDraggingComponent.updateValue(newValue)  # 传入计算好的新值
 
-            elif app.currDraggingComponent.isDragging:  # 滑块整体拖动
-                newX = mouseX - app.currDraggingComponent.width / 2
-                newY = mouseY - app.currDraggingComponent.height / 2
-                app.currDraggingComponent.x, app.currDraggingComponent.y = keepWithinBounds(app, newX, newY)
-                app.currDraggingComponent.updateNodePositions()
+    elif app.currDraggingComponent:  # Handle dragging of current component
+        comp = app.currDraggingComponent
+        if not isinstance(comp, list):
+            if isinstance(comp, Slider):
+                if comp.isDraggingHandle:
+                    normalized_x = (mouseX - comp.x) / comp.width
+                    newValue = comp.min_val + normalized_x * (comp.max_val - comp.min_val)
+                    newValue = max(comp.min_val, min(comp.max_val, newValue))
+                    comp.updateValue(newValue)
+                elif comp.isDragging:
+                    newX, newY = adjustPosition(comp, mouseX, mouseY)
+                    comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
+                    comp.updateNodePositions()
+            elif comp.isDragging:
+                newX, newY = adjustPosition(comp, mouseX, mouseY)
+                comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
+                comp.updateNodePositions()
+        else:
+            dx, dy = mouseX - app.dragGroupOldMouseX, mouseY - app.dragGroupOldMouseY
+            for selectedCompo in app.currDraggingComponent:
+                newX, newY = selectedCompo.x + dx, selectedCompo.y + dy
+                selectedCompo.x, selectedCompo.y = keepWithinBounds(app, newX, newY, selectedCompo)
+                selectedCompo.updateNodePositions()
+            app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
 
-        elif app.currDraggingComponent.isDragging:  # 普通组件拖动
-            newX = mouseX - app.currDraggingComponent.width / 2
-            newY = mouseY - app.currDraggingComponent.height / 2
-            app.currDraggingComponent.x, app.currDraggingComponent.y = keepWithinBounds(app, newX, newY)
-            app.currDraggingComponent.updateNodePositions()
-        
+def adjustPosition(comp, mouseX, mouseY):
+    newX = mouseX - comp.width / 2
+    newY = mouseY - comp.height / 2
+    return newX, newY
+
+def keepWithinBounds(app, x, y, com):
+    x = max(4, min(x, app.width - com.width - 4))
+    y = max(app.toolbarHeight + 2, min(y, app.height - com.height - 4))
+    return x, y
+
 
 
 def onMouseRelease(app, mouseX, mouseY):
@@ -419,19 +449,25 @@ def onMouseRelease(app, mouseX, mouseY):
 
     if app.isDragSelecting:
         app.isDragSelecting = False
+        for compo in app.components:
+            if isIntersectRects((compo.x, compo.y), (compo.x + compo.width, compo.y+compo.height), app.dragFrameStart, app.dragFrameEnd):
+                app.selectedCompo.append(compo)
+                compo.isSelected = True
         app.dragFrameStart = None
         app.dragFrameEnd = None
+    
+    app.dragGroupOldMouseX, app.dragGroupOldMouseY = None, None
 
-def keepWithinBounds(app, x, y):
-    if x < 4:
-        x = 4
-    elif x + app.currDraggingComponent.width > app.width - 4:
-        x = app.width - app.currDraggingComponent.width - 4
-    if y < app.toolbarHeight + 2:
-        y = app.toolbarHeight + 2
-    elif y + app.currDraggingComponent.height > app.height - 4:
-        y = app.height = app.currDraggingComponent.height - 4
-    return x, y
+def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
+    x1, y1 = leftTop1
+    x2, y2 = rightBot1
+    x3, y3 = leftTop2
+    x4, y4 = rightBot2
+    if x2 <= x3 or x4 <= x1:
+        return False
+    if y2 <= y3 or y4 <= y1:
+        return False
+    return True
 
 
 def onKeyPress(app, key):
