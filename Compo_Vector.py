@@ -21,7 +21,7 @@ class Point(TypicleComponent):
         
         for node in self.outputNodes:
             if node.name == 'point':
-                node.value = self.x_val, self.y_val
+                node.value = (self.x_val, self.y_val)
                 for connection in node.connections:
                     connection.end_node.receiveValue(node.value)
 

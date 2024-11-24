@@ -14,9 +14,12 @@ class CircleCreator(TypicleComponent):
     
     def updateValue(self, nodeName, value):
         if nodeName == 'point':
-            self.point_val = value
+            # 确保 value 是一个包含 x,y 坐标的元组或列表
+            if isinstance(value, (tuple, list)) and len(value) == 2:
+                self.point_val = value
         elif nodeName == 'radius':
-            self.radius_val = abs(value) if self.radius_val != 0 else None
+            self.radius_val = abs(value) if value is not None else None
+            
         self.hasAllInputs = (self.point_val is not None and
                             self.radius_val is not None)
     
@@ -44,9 +47,9 @@ class RectCreator(TypicleComponent):
         if nodeName == 'point':
             self.point_val = value
         elif nodeName == 'width':
-            self.width_val = max(0, value) if value is not None else None
+            self.width_val = abs(value) if value is not None else None
         elif nodeName == 'height':
-            self.height_val = max(0, value) if value is not None else None
+            self.height_val = abs(value) if value is not None else None
 
         self.hasAllInputs = (self.point_val is not None and 
                             self.width_val is not None and

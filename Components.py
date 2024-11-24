@@ -78,7 +78,7 @@ class Node:
         self.name = name
         self.component = component
         self.isOutput = isOutput
-        self.data = data
+        self.value = data
         self.isHovering = False
         self.x, self.y = 0, 0
         self.r = 5
