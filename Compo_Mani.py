@@ -19,6 +19,24 @@ class Move(TypicleComponent):
             
         self.hasAllInputs = False
     
+    def calculate(self):
+        geo_val = self.inputNodes[0].value
+        dx, dy = self.inputNodes[1].value
+        
+        if not geo_val or not isinstance(geo_val, list):
+            return [None]
+            
+        currShape = geo_val[0]
+        if currShape == 'cir':
+            x, y = geo_val[1]
+            r = geo_val[2]
+            return [['cir', (x + dx, y + dy), r]]
+        elif currShape == 'rect':
+            x, y = geo_val[1]
+            w = geo_val[2]
+            h = geo_val[3]
+            return [['rect', (x + dx, y + dy), w, h]]
+    
     def draw(self):
         if self.hasAllInputs:
             geo_val = self.inputNodes[0].value
@@ -39,39 +57,5 @@ class Move(TypicleComponent):
                 h = geo_val[3]
                 drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue')
             
-            # 绘制移动指示线
             drawLine(x, y, x + dx, y + dy, fill='lightBlue', dashes=True)
 
-    
-    def updateValue(self, nodeName, value):
-        # Update input node value
-        for node in self.inputNodes:
-            if node.name == nodeName:
-                node.value = value
-        
-        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
-        
-        if self.hasAllInputs:
-            geo_val = self.inputNodes[0].value
-            dx, dy = self.inputNodes[1].value
-            
-            if not geo_val or not isinstance(geo_val, list):
-                return
-                
-            for node in self.outputNodes:
-                if node.name == 'moved':
-                    currShape = geo_val[0]
-                    if currShape == 'cir':
-                        x, y = geo_val[1]
-                        r = geo_val[2]
-                        # 直接使用 dx, dy，不需要改变 dy 的符号
-                        node.value = ['cir', (x + dx, y + dy), r]
-                    elif currShape == 'rect':
-                        x, y = geo_val[1]
-                        w = geo_val[2]
-                        h = geo_val[3]
-                        # 直接使用 dx, dy，不需要改变 dy 的符号
-                        node.value = ['rect', (x + dx, y + dy), w, h]
-                    
-                    for connection in node.connections:
-                        connection.end_node.receiveValue(node.value)

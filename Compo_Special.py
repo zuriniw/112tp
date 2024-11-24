@@ -11,7 +11,7 @@ from cmu_graphics import *
 from Node import *
 
 class Slider(Component):
-    def __init__(self, app, name='Slider\n--->', min_val=-200, max_val=200):
+    def __init__(self, app, name='Slider\n<--->', min_val=-200, max_val=200):
         inputs = []
         outputs = ['value']
         super().__init__(app)

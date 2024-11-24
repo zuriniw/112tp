@@ -23,25 +23,10 @@ class CircleCreator(TypicleComponent):
         self.outputNodes[0].value = ['cir', (app.x0, app.y0), 40]
         self.hasAllInputs = True
     
-    def updateValue(self, nodeName, value):
-        # 更新输入节点的值
-        for node in self.inputNodes:
-            if node.name == nodeName:
-                node.value = value
-                
-        self.hasAllInputs = (self.inputNodes[0].value is not None and
-                            self.inputNodes[1].value is not None)
-        
-        # 如果所有输入都有值，更新输出
-        if self.hasAllInputs:
-            point_val = self.inputNodes[0].value
-            radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
-            
-            for node in self.outputNodes:
-                if node.name == 'circle':
-                    node.value = ['cir', point_val, radius_val]
-                    for connection in node.connections:
-                        connection.end_node.receiveValue(node.value)
+    def calculate(self):
+        point_val = self.inputNodes[0].value
+        radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
+        return [['cir', point_val, radius_val]]
     
     def draw(self):
         if self.hasAllInputs and self.inputNodes[1].value != 0:

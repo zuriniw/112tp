@@ -97,8 +97,22 @@ class TypicleComponent(Component):
 
 
     def getDefaultValue(self, nodeName):
-    # 每个组件类型需要重写此方法
         return self.inputDefaultValue.get(nodeName)
 
-
+    def updateValue(self, nodeName, value):
+        # Update specific input node
+        for node in self.inputNodes:
+            if node.name == nodeName:
+                node.value = value
+                break
+        
+        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
+        
+        if self.hasAllInputs:
+            output_values = self.calculate()
+            if output_values:
+                for node, value in zip(self.outputNodes, output_values):
+                    node.value = value
+                    for connection in node.connections:
+                        connection.end_node.receiveValue(value)
 
