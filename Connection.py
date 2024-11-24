@@ -31,3 +31,12 @@ class Connections:
         
         distance = ((mouseX - px) ** 2 + (mouseY - py) ** 2) ** 0.5
         return distance <= threshold
+    
+    def deleteConnection(self, app):
+        # 从节点中移除连接
+        self.start_node.removeConnection(self)
+        self.end_node.removeConnection(self)
+        # 从app中移除连接
+        if self in app.connections:
+            app.connections.remove(self)
+        

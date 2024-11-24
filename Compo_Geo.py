@@ -8,34 +8,47 @@ class CircleCreator(TypicleComponent):
         name = 'Draw\nCirc\nO'
         self.isGeo = True
         super().__init__(app, inputs, outputs, name)
-        self.point_val = app.x0, app.y0
-        self.radius_val = 40
-        self.hasAllInputs = (self.point_val is not None and self.radius_val is not None)
+        
+        # 设置默认值
+        self.inputDefaultValue = {
+            'point': (app.x0, app.y0),
+            'radius': 40
+        }
+        
+        # 为输入节点设置默认值
+        for node in self.inputNodes:
+            node.value = self.inputDefaultValue[node.name]
+            
+        # 初始化输出节点值
+        self.outputNodes[0].value = ['cir', (app.x0, app.y0), 40]
+        self.hasAllInputs = True
     
     def updateValue(self, nodeName, value):
-        if nodeName == 'point':
-            self.point_val = value
-        elif nodeName == 'radius':
-            self.radius_val = abs(value) if value is not None else None
-            
-        self.hasAllInputs = (self.point_val is not None and
-                            self.radius_val is not None)
+        # 更新输入节点的值
+        for node in self.inputNodes:
+            if node.name == nodeName:
+                node.value = value
+                
+        self.hasAllInputs = (self.inputNodes[0].value is not None and
+                            self.inputNodes[1].value is not None)
         
-        # 更新输出节点的值
+        # 如果所有输入都有值，更新输出
         if self.hasAllInputs:
+            point_val = self.inputNodes[0].value
+            radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
+            
             for node in self.outputNodes:
                 if node.name == 'circle':
-                    node.value = ['cir', self.point_val, self.radius_val]
-                    # 传递值给连接的节点
+                    node.value = ['cir', point_val, radius_val]
                     for connection in node.connections:
                         connection.end_node.receiveValue(node.value)
     
     def draw(self):
-        if self.hasAllInputs and self.radius_val!=0:
-            x, y = self.point_val
-            drawCircle(x, y, self.radius_val, 
-                      fill=None, border='blue')
-                      
+        if self.hasAllInputs and self.inputNodes[1].value != 0:
+            x, y = self.inputNodes[0].value
+            radius = abs(self.inputNodes[1].value)
+            drawCircle(x, y, radius, fill=None, border='blue')
+
 class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['point', 'width', 'height']
@@ -43,37 +56,48 @@ class RectCreator(TypicleComponent):
         name = 'Draw\nRect\n⬚'
         self.isGeo = True
         super().__init__(app, inputs, outputs, name)
-        self.point_val = None
-        self.width_val = None
-        self.height_val = None
-        self.hasAllInputs = (self.point_val is not None and 
-                            self.width_val is not None and 
-                            self.height_val is not None)
+        
+        # 设置默认值
+        self.inputDefaultValue = {
+            'point': (app.x0, app.y0),
+            'width': 40,
+            'height': 40
+        }
+        
+        # 为输入节点设置默认值
+        for node in self.inputNodes:
+            node.value = self.inputDefaultValue[node.name]
+            
+        # 初始化输出节点值，与 CircleCreator 保持一致
+        self.outputNodes[0].value = ['rect', (app.x0, app.y0), 40, 40]
+        self.hasAllInputs = True
     
     def updateValue(self, nodeName, value):
-        if nodeName == 'point':
-            self.point_val = value
-        elif nodeName == 'width':
-            self.width_val = abs(value) if value is not None else None
-        elif nodeName == 'height':
-            self.height_val = abs(value) if value is not None else None
-            
-        self.hasAllInputs = (self.point_val is not None and 
-                            self.width_val is not None and
-                            self.height_val is not None)
+        # 更新输入节点的值
+        for node in self.inputNodes:
+            if node.name == nodeName:
+                node.value = value
+                
+        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
         
-        # 更新输出节点的值
+        # 如果所有输入都有值，更新输出
         if self.hasAllInputs:
+            point_val = self.inputNodes[0].value
+            width_val = abs(self.inputNodes[1].value)
+            height_val = abs(self.inputNodes[2].value)
+            
             for node in self.outputNodes:
                 if node.name == 'rect':
-                    node.value = ['rect', self.point_val, self.width_val, self.height_val]
-                    # 传递值给连接的节点
+                    # 修改：使用与 CircleCreator 相同的列表格式
+                    node.value = ['rect', point_val, width_val, height_val]
                     for connection in node.connections:
                         connection.end_node.receiveValue(node.value)
 
+    
     def draw(self):
-        if self.hasAllInputs and self.width_val != 0 and self.height_val != 0:
-            x, y = self.point_val
-            drawRect(x - self.width_val/2, y - self.height_val/2, 
-                    self.width_val, self.height_val, 
+        if self.hasAllInputs and self.inputNodes[1].value != 0 and self.inputNodes[2].value != 0:
+            x, y = self.inputNodes[0].value
+            width = abs(self.inputNodes[1].value)
+            height = abs(self.inputNodes[2].value)
+            drawRect(x - width/2, y - height/2, width, height,
                     fill=None, border='blue')

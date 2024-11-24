@@ -1,5 +1,6 @@
 from cmu_graphics import *
 from Components import *
+from Compo_Special import *
 from Compo_Geo import *
 from Compo_Math import *
 from Compo_Vector import *
@@ -12,71 +13,80 @@ from ToolbarTab import ToolbarTab
 import time
 
 def onAppStart(app):
-
+    ## Window Settings
     app.width = 1512
     app.height = 982
-
     app.mouseX = app.width/2
     app.mouseY = app.height/2
-
-    app.toolbarHeight = 110
+    
+    ## UI Constants
+    app.paddingX, app.paddingY = 8, 12
+    app.borderX, app.borderY = 12, 12
+    app.textHeight, app.textWidth = 13, 7
+    app.centerLabelWidth = 80
+    
+    ## Component Management
     app.components = []
     app.selectedCompo = []
     app.currDraggingComponent = None
     app.lastClickTime = time.time()
-
-    app.paddingX, app.paddingY = 8, 12
-    app.borderX, app.borderY = 12, 12
-    app.textHeight, app.textWidth = 13, 7
-
+    
+    ## Connection Management
     app.connections = []
     app.draggingNode = None
     app.tempConnection = None
-
+    
+    ## Display Settings
     app.isCompDisplay = True
     app.isAxisDisplay = True
     app.isGridDisplay = True
     app.isDotDisplay = False
     app.isGuidbookDisplay = False
-
+    
+    ## Toggle Panel Settings
     app.toggleStates = {
         'Comp Display': app.isCompDisplay,
         'Axis Display': app.isAxisDisplay,
         'Grid Display': app.isGridDisplay,
-        'Dot Display':app.isDotDisplay,
-        'Guidbook Display':app.isGuidbookDisplay
+        'Dot Display': app.isDotDisplay,
+        'Guidbook Display': app.isGuidbookDisplay
     }
-
-    app.toggleWidth, app.toggleHeight = 80, 40      # toggle buttom
+    
+    ## Toggle Panel Layout
+    app.toolbarHeight = 110
+    app.toggleWidth, app.toggleHeight = 80, 40
     app.togglePanelWidth = 120
     app.togglePanelStartX = app.width - app.togglePanelWidth
     app.togglePanelStartY = app.toolbarHeight + app.paddingY
-
+    
+    # Create toggle buttons
     toggleStartX = app.togglePanelStartX + app.togglePanelWidth/2 - app.toggleWidth/2
     firstToggleStartY = app.togglePanelStartY + app.borderY * 3
     toggleNames = list(app.toggleStates.keys())
-    app.toggles = [Toggle(app, toggleStartX, firstToggleStartY + i*(app.textHeight+app.paddingY*3+app.toggleHeight), toggleNames[i], app.toggleStates[toggleNames[i]]) for i in range(len(toggleNames))]
-
-    app.centerLabelWidth = 80
-
-    #grid
+    app.toggles = [Toggle(app, toggleStartX, 
+                         firstToggleStartY + i*(app.textHeight+app.paddingY*3+app.toggleHeight),
+                         toggleNames[i], 
+                         app.toggleStates[toggleNames[i]]) 
+                  for i in range(len(toggleNames))]
+    
+    ## Grid Settings
     app.x0 = app.togglePanelStartX / 2
     app.y0 = app.height/2
-
-    # Toolbar organization
+    
+    ## Toolbar Settings
     app.isDraggingNewComponent = False
     app.draggedComponentType = None
-
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider, Reverse, Add, Subtract, Multiply, Divide],
         'Manipulation': [Move],
         'Analyze': [],
-        'Vector':[Point, Vector, VectorPreview]
+        'Vector': [Point, Vector, VectorPreview]
     }
-    app.activeCategory = 'Geometry'  # Default active category
+    app.activeCategory = 'Geometry'
     loadToolbar(app)
-    # Toolbar tab
+    
+    ## Toolbar Tabs
     app.tabs = []
     tabX = 0
     for category in list(app.componentTypes.keys()):
@@ -85,13 +95,14 @@ def onAppStart(app):
         app.tabs.append(tab)
         tabX += tab.width - 2
     
-    # Drag selecting components
-    app.isDragSelecting = False    # 是否正在拖拽选择
-    app.dragFrameStart = None      # 拖拽起始位置
-    app.dragFrameEnd = None        # 拖拽结束位置
+    ## Drag Selection Settings
+    app.isDragSelecting = False
+    app.dragFrameStart = None
+    app.dragFrameEnd = None
+    
+    ## Group Drag Settings
+    app.dragGroupOldMouseX, app.dragGroupOldMouseX = None, None
 
-    # Drag move components
-    app.dragGroupOldMouseX,app.dragGroupOldMouseX = None, None 
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -166,7 +177,6 @@ def drawDraggingFrame(app):
     if app.isDragSelecting and app.dragFrameStart != app.dragFrameEnd:
         x1, y1 = app.dragFrameStart
         x2, y2 = app.dragFrameEnd
-        # 绘制半透明的选择框
         if x2 != x1 and y2 != y1:
             drawRect(min(x1, x2), min(y1, y2),
                     abs(x2 - x1), abs(y2 - y1),
@@ -219,55 +229,43 @@ def redrawAll(app):
 
 
 def onMouseMove(app, mouseX, mouseY):
-    # Update mouse position for preview
+    ###### 1. Update Mouse Position ######
     app.mouseX = mouseX
     app.mouseY = mouseY
     
-    # 处理节点悬停
+    ###### 2. Handle Node Hovering ######
+    # Reset all node hover states
     for component in app.components:
         for node in component.inputNodes + component.outputNodes:
-            if node.hitTest(mouseX, mouseY):
-                node.isHovering = True
-            else:
-                node.isHovering = False
+            node.isHovering = node.hitTest(mouseX, mouseY)
     
-    # 处理按钮悬停
+    ###### 3. Handle Button Hovering ######
     for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
-    
-    # 更新预览组件位置
-    if app.isDraggingNewComponent:
-        app.mouseX = mouseX
-        app.mouseY = mouseY
 
-    # if is hovering over a node, it highlights
-    for component in app.components:
-        for node in component.inputNodes + component.outputNodes:
-            if node.hitTest(mouseX, mouseY):
-                node.isHovering = True
-            else:
-                node.isHovering = False
 
 def onMousePress(app, mouseX, mouseY):
     currentTime = time.time()
     
-    # 首先检查是否点击到节点
+    ###### 1. Node and Connection Interaction ######
+    # Check if clicking on a node
     for component in app.components:
         for node in component.inputNodes + component.outputNodes:
             if node.hitTest(mouseX, mouseY):
                 app.draggingNode = node
                 return
     
-    # 检查连接线
-    for connection in app.connections:
-        if connection.hitTest(mouseX, mouseY):
-            if currentTime - app.lastClickTime < 0.3:
-                app.connections.remove(connection)
+    # Check if double-clicking on a connection
+    for conn in app.connections:
+        if conn.hitTest(mouseX, mouseY):
+            if currentTime - app.lastClickTime < 0.3:  # Double click
+                conn.deleteConnection(app)
                 return
             app.lastClickTime = currentTime
             return
-        
-    # 检查toolbar button
+    
+    ###### 2. Toolbar Interaction ######
+    # Check toolbar buttons
     for button in app.currButtomList:
         if button.hitTest(mouseX, mouseY):
             app.currDraggingComponent = None
@@ -275,7 +273,7 @@ def onMousePress(app, mouseX, mouseY):
             app.draggedComponentType = button.component
             return
     
-    # 检查toolbar tab
+    # Check toolbar tabs
     for tab in app.tabs:
         if tab.hitTest(mouseX, mouseY):
             app.currDraggingComponent = None
@@ -284,119 +282,124 @@ def onMousePress(app, mouseX, mouseY):
             app.activeCategory = tab.category
             loadToolbar(app)
             return
-        
-    # 检查toggle
+    
+    ###### 3. Toggle Panel Interaction ######
     for toggle in app.toggles:
         if toggle.hitTest(mouseX, mouseY):
             toggle.isOn = not toggle.isOn
-            # Generate mapping dynamically by converting toggle name to variable name
-            var_name = 'is'+toggle.name.replace(' ', '')
+            var_name = 'is' + toggle.name.replace(' ', '')
             setattr(app, var_name, toggle.isOn)
             app.toggleStates[toggle.name] = toggle.isOn
             return
-        
-        
+    
+    ###### 4. Component Interaction ######
     hitComponent = False
-    # 最后检查组件
     for component in app.components:
         if component.hitTest(mouseX, mouseY):
             hitComponent = True
-            # 1////双击删除
+            
+            # Handle double-click deletion
             if currentTime - app.lastClickTime < 0.3:
-                # 删除与该组件相关的所有连接
-                connectionsToRemove = []
-                for connection in app.connections:
-                    if (connection.start_node.component == component or 
-                        connection.end_node.component == component):
-                        connectionsToRemove.append(connection)
-                
-                # 从 app.connections 中移除这些连接
-                for connection in connectionsToRemove:
-                    app.connections.remove(connection)
-                
-                # 删除组件
-                app.components.remove(component)
+                component.deleteComponent(app)
                 app.currDraggingComponent = None
                 return
-            # 2///拖动手柄
+            
+            # Handle slider interaction
             if isinstance(component, Slider):
                 if component.hitTestHandle(mouseX, mouseY):
-                    # 点击到滑块手柄
                     component.isDraggingHandle = True
                     app.currDraggingComponent = component
                 else:
-                    # 点击到滑块其他部分，只设置拖动状态
                     app.currDraggingComponent = component
                     component.isDragging = True
                     component.isDraggingHandle = False
-            # 3///点到组件
+            # Handle regular component interaction
             else:
-                # 拖动单个
-                if app.selectedCompo == []:
+                if not app.selectedCompo:  # Single component drag
                     app.currDraggingComponent = component
                     component.isDragging = True
-                # 拖动多个
-                else:
+                else:  # Group drag
                     app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
                     app.currDraggingComponent = app.selectedCompo
                     for compo in app.selectedCompo:
                         compo.isDragging = True
+            
             app.lastClickTime = currentTime
             break
-
+    
+    ###### 5. Empty Space Interaction ######
     if not hitComponent:
         app.currDraggingComponent = None
-
-    if app.currDraggingComponent is None:  # 点击空白处
-        # 清空已经选中的compo
+        
+    if app.currDraggingComponent is None:
+        # Clear selection
         for compo in app.selectedCompo:
             compo.isSelected = False
-
         app.selectedCompo = []
-
-        # Prepare to drad and select
+        
+        # Initialize drag selection
         app.isDragSelecting = True
         app.dragFrameStart = (mouseX, mouseY)
         app.dragFrameEnd = (mouseX, mouseY)
 
+
 def onMouseDrag(app, mouseX, mouseY):
+    # Update current mouse position
     app.mouseX = mouseX
     app.mouseY = mouseY
     
+    ###### 1. Handle Drag Selection ######
     if app.isDragSelecting:
         app.dragFrameEnd = (mouseX, mouseY)
-        
-    elif app.draggingNode:  # Handle node dragging for connections
+    
+    ###### 2. Handle Node Connection Dragging ######
+    elif app.draggingNode:
+        # Create temporary visual connection line
         app.tempConnection = (app.draggingNode, mouseX, mouseY)
-        # Check for hovering over input nodes
+        # Highlight potential connection targets
         for component in app.components:
             for node in component.inputNodes:
                 node.isHovering = node.hitTest(mouseX, mouseY)
-
-    elif app.currDraggingComponent:  # Handle dragging of current component
+    
+    ###### 3. Handle Component Dragging ######
+    elif app.currDraggingComponent:
         comp = app.currDraggingComponent
+        
+        # Single Component Dragging
         if not isinstance(comp, list):
             if isinstance(comp, Slider):
                 if comp.isDraggingHandle:
+                    # Handle slider value adjustment
                     normalized_x = (mouseX - comp.x) / comp.width
                     newValue = comp.min_val + normalized_x * (comp.max_val - comp.min_val)
                     newValue = max(comp.min_val, min(comp.max_val, newValue))
                     comp.updateValue(newValue)
-                elif comp.isDragging:
+                else:
+                    # Handle slider position movement
                     newX, newY = adjustPosition(comp, mouseX, mouseY)
                     comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
                     comp.updateNodePositions()
-            elif comp.isDragging:
+            else:
+                # Handle regular component movement
                 newX, newY = adjustPosition(comp, mouseX, mouseY)
                 comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
                 comp.updateNodePositions()
+        
+        # Multiple Components Dragging
         else:
-            dx, dy = mouseX - app.dragGroupOldMouseX, mouseY - app.dragGroupOldMouseY
+            # Calculate movement delta
+            dx = mouseX - app.dragGroupOldMouseX
+            dy = mouseY - app.dragGroupOldMouseY
+            
+            # Move all selected components
             for selectedCompo in app.currDraggingComponent:
                 newX, newY = selectedCompo.x + dx, selectedCompo.y + dy
                 selectedCompo.x, selectedCompo.y = keepWithinBounds(app, newX, newY, selectedCompo)
                 selectedCompo.updateNodePositions()
+            
+            # Update reference point for next drag
             app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+
 
 def adjustPosition(comp, mouseX, mouseY):
     newX = mouseX - comp.width / 2
@@ -409,55 +412,58 @@ def keepWithinBounds(app, x, y, com):
     return x, y
 
 
-
 def onMouseRelease(app, mouseX, mouseY):
+    ###### 1. Handle New Component Creation ######
     if app.isDraggingNewComponent and app.draggedComponentType:
-        # 确保在有效区域内
-        if mouseY > app.toolbarHeight:
-            # 创建新组件
+        if mouseY > app.toolbarHeight:  # Only create if dropped in valid area
+            # Create and position new component
             newComponent = app.draggedComponentType(app)
             newComponent.x = mouseX - newComponent.width/2
             newComponent.y = mouseY - newComponent.height/2
             app.components.append(newComponent)
             newComponent.updateNodePositions()
         
-        # 重置拖动状态
+        # Reset dragging state
         app.isDraggingNewComponent = False
         app.draggedComponentType = None
         return
-        
+    
+    ###### 2. Handle Node Connection Creation ######
     if app.draggingNode:
         start_node = app.draggingNode
         for component in app.components:
             for node in component.inputNodes + component.outputNodes:
                 if node.hitTest(mouseX, mouseY) and node != start_node:
+                    # Ensure one input and one output
                     if start_node.isOutput != node.isOutput:
-                        output_node = start_node if start_node.isOutput else node
-                        input_node = node if start_node.isOutput else start_node
-                        
-                        # Create new connection
-                        new_connection = Connections(output_node, input_node)
-                        
-                        # Add connection to nodes
-                        output_node.addConnection(new_connection)
-                        input_node.addConnection(new_connection)
-                        
-                        # Add connection to app
+                        # Create and setup new connection
+                        new_connection = Connections(start_node, node)
+                        new_connection.start_node.addConnection(new_connection)
+                        new_connection.end_node.addConnection(new_connection)
                         app.connections.append(new_connection)
         
+        # Reset node dragging state
         app.draggingNode = None
         app.tempConnection = None
-
+    
+    ###### 3. Handle Drag Selection ######
     if app.isDragSelecting:
         app.isDragSelecting = False
+        # Check each component for intersection with selection frame
         for compo in app.components:
-            if isIntersectRects((compo.x, compo.y), (compo.x + compo.width, compo.y+compo.height), app.dragFrameStart, app.dragFrameEnd):
+            if isIntersectRects((compo.x, compo.y), 
+                              (compo.x + compo.width, compo.y + compo.height),
+                              app.dragFrameStart, app.dragFrameEnd):
                 app.selectedCompo.append(compo)
                 compo.isSelected = True
+        
+        # Reset selection frame
         app.dragFrameStart = None
         app.dragFrameEnd = None
     
+    ###### 4. Reset Group Dragging Reference ######
     app.dragGroupOldMouseX, app.dragGroupOldMouseY = None, None
+
 
 def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
     x1, y1 = leftTop1
@@ -488,10 +494,14 @@ def onKeyPress(app, key):
         newPoint.updateNodePositions()
         app.components.append(newPoint)
 
-    elif key == 'backspace' or 'delete':
-        if app.selectedCompo != []:
+    elif key in ['backspace', 'delete']:
+        if app.selectedCompo:
             for compo in app.selectedCompo:
-                app.components.remove(compo)
+                compo.deleteComponent(app)
+            # Clear selection
+            app.selectedCompo = []
+
+
         
 def main():
     runApp()
