@@ -43,7 +43,8 @@ class TypicleComponent(Component):
     def drawUI(self):
         # Draw nodes
         for node in self.inputNodes + self.outputNodes:
-            node.drawNode()
+            if node.name != '':
+                node.drawNode()
 
         # Draw background
         drawRect(self.x, self.y, self.width, self.height, fill='white' if not self.isSelected else 'lightGrey', border='black')

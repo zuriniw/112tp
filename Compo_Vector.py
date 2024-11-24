@@ -32,14 +32,15 @@ class Vector(TypicleComponent):
     def __init__(self, app):
         inputs = ['start', 'end']
         outputs = ['vector']
-        name = 'vector\n<>'
+        name = 'vector\n< >'
         self.isGeo = False
         self.start_val = (app.x0, app.y0)
-        self.end_val = (app.x0, app.y0)
+        self.end_val = (app.x0+20, app.y0-20)
 
         super().__init__(app, inputs, outputs, name)
         
         self.hasAllInputs = self.end_val is not None
+        
     
     def updateValue(self, nodeName, value):
         # the value here should be a point cordinate tuple
@@ -67,5 +68,33 @@ class Vector(TypicleComponent):
     #     drawLine(x0,y0,x1,y1, fill='lightBlue', lineWidth = 1, dashes = True, arrowEnd = True)
 
     
+class VectorPreview(TypicleComponent):
+    def __init__(self, app):
+        inputs = ['vector', 'anchor']
+        outputs = ['']  # No outputs needed for preview
+        name = 'Vector\nPreview\n→'
+        self.isGeo = True
+        super().__init__(app, inputs, outputs, name)
+        self.vector_val = None
+        self.anchor_val = None
+        self.hasAllInputs = False
+    
+    def updateValue(self, nodeName, value):
+        if nodeName == 'vector':
+            self.vector_val = value
+        elif nodeName == 'anchor':
+            self.anchor_val = value
+            
+        self.hasAllInputs = (self.vector_val is not None and 
+                            self.anchor_val is not None)
+    
+    def draw(self):
+        if self.hasAllInputs:
+            dx, dy = self.vector_val
+            x0, y0 = self.anchor_val
+            x1, y1 = x0 + dx, y0 + dy
+            drawLine(x0, y0, x1, y1, 
+                    fill='pink', 
+                    arrowEnd=True)
 
 

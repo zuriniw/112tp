@@ -3,6 +3,7 @@ from Components import *
 from Compo_Geo import *
 from Compo_Math import *
 from Compo_Vector import *
+from Compo_Mani import *
 from Connection import Connections
 from Toggle import Toggle
 from ToolbarButton import ToolbarButton
@@ -69,9 +70,9 @@ def onAppStart(app):
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider, Reverse, Add, Subtract, Multiply, Divide],
-        'Manipulation': [],
+        'Manipulation': [Move],
         'Analyze': [],
-        'Vector':[Point, Vector]
+        'Vector':[Point, Vector, VectorPreview]
     }
     app.activeCategory = 'Geometry'  # Default active category
     loadToolbar(app)
