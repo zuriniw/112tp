@@ -1,31 +1,70 @@
 from Components import TypicleComponent
 from cmu_graphics import *
 
-class Reverse(TypicleComponent):
-    def __init__(self, app):
+class UnaryOperator(TypicleComponent):
+    def __init__(self, app, operator, symbol):
         inputs = ['n']
-        outputs = ['opposite']
-        name = 'Reverse\nNumber'
+        outputs = ['result']
+        name = f'{symbol}\nNumber\n{operator}'
         self.isGeo = False
         super().__init__(app, inputs, outputs, name)
-        self.n_val = None
-        self.hasAllInputs = False
+        
+        self.inputDefaultValue = {
+            'n': 0
+        }
+        
+        # 设置默认值
+        for node in self.inputNodes:
+            node.value = self.inputDefaultValue[node.name]
+            
+        # 初始化输出值
+        self.outputNodes[0].value = 0
+        self.hasAllInputs = True
+        self.operator = operator
+    
+    def calculate(self, n):
+        if self.operator == '-': return -n
+        elif self.operator == '²': return n * n
+        elif self.operator == '√': return abs(n) ** 0.5
+        elif self.operator == 'π×': return n * 3.14159
+        elif self.operator == '|x|': return abs(n)
     
     def updateValue(self, nodeName, value):
-        if nodeName == 'n':
-            self.n_val = value
-            self.hasAllInputs = (self.n_val is not None)
-            
-            # 如果有输入值，计算并更新输出节点的值
-            if self.hasAllInputs:
-                opposite_val = -self.n_val
-                # 更新输出节点的值
-                for node in self.outputNodes:
-                    if node.name == 'opposite':
-                        node.value = opposite_val
-                        # 通过输出节点传递值
-                        for connection in node.connections:
-                            connection.end_node.receiveValue(opposite_val)
+        # 更新输入节点值
+        for node in self.inputNodes:
+            if node.name == nodeName:
+                node.value = value
+        
+        # 计算并更新输出
+        n_val = self.inputNodes[0].value
+        result = self.calculate(n_val)
+        
+        for node in self.outputNodes:
+            if node.name == 'result':
+                node.value = result
+                for connection in node.connections:
+                    connection.end_node.receiveValue(result)
+                    
+class Reverse(UnaryOperator):
+    def __init__(self, app):
+        super().__init__(app, '-', 'Rev')
+
+class Square(UnaryOperator):
+    def __init__(self, app):
+        super().__init__(app, '²', 'Sqr')
+
+class SquareRoot(UnaryOperator):
+    def __init__(self, app):
+        super().__init__(app, '√', 'Sqrt')
+
+class MultiplyPi(UnaryOperator):
+    def __init__(self, app):
+        super().__init__(app, 'π×', 'Pi')
+
+class Absolute(UnaryOperator):
+    def __init__(self, app):
+        super().__init__(app, '|x|', 'Abs')
+
 
 class BinaryOperator(TypicleComponent):
     def __init__(self, app, operator, symbol):
@@ -71,7 +110,7 @@ class BinaryOperator(TypicleComponent):
                 node.value = result
                 for connection in node.connections:
                     connection.end_node.receiveValue(result)
-                    
+
 class Add(BinaryOperator):
     def __init__(self, app):
         super().__init__(app, '+', 'Add')

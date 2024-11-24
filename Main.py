@@ -78,7 +78,7 @@ def onAppStart(app):
     app.draggedComponentType = None
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
-        'Math': [Slider, Reverse, Add, Subtract, Multiply, Divide],
+        'Math': [Slider, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
         'Manipulation': [Move],
         'Analyze': [],
         'Vector': [Point, Vector, VectorPreview]
