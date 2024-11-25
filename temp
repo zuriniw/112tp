@@ -1,36 +1,49 @@
 import RPi.GPIO as GPIO
-from time import sleep
+import time
 
-# Pin Definitions
-DIR_PIN = 24  # GPIO pin connected to DIR on EasyDriver
-STEP_PIN = 23  # GPIO pin connected to STEP on EasyDriver
+# Set up GPIO mode
+GPIO.setmode(GPIO.BCM)
 
-# Motor Movement Parameters
-STEP_DELAY = 0.01  # Time delay between steps (seconds)
-STEPS = 200  # Number of steps to move
+# Define pins
+STEP_PIN = 23  # GPIO23 (Pin 16)
+DIR_PIN = 24   # GPIO24 (Pin 18)
+GND_PIN = 6    # GND
 
-# GPIO Setup
-GPIO.setmode(GPIO.BCM)  # Use BCM pin numbering
-GPIO.setup(DIR_PIN, GPIO.OUT)
+# Setup pins as outputs
 GPIO.setup(STEP_PIN, GPIO.OUT)
+GPIO.setup(DIR_PIN, GPIO.OUT)
 
-try:
-    # Set Direction (1 for clockwise, 0 for counterclockwise)
-    GPIO.output(DIR_PIN, GPIO.HIGH)  # Change to GPIO.LOW for reverse direction
+def test_motor():
+    try:
+        # Set direction (clockwise)
+        GPIO.output(DIR_PIN, GPIO.HIGH)
+        
+        # Make 200 steps (one revolution for most stepper motors)
+        for _ in range(200):
+            GPIO.output(STEP_PIN, GPIO.HIGH)
+            time.sleep(0.005)  # Adjust this delay to change speed
+            GPIO.output(STEP_PIN, GPIO.LOW)
+            time.sleep(0.005)
+            
+        # Wait a second
+        time.sleep(1)
+        
+        # Reverse direction (counter-clockwise)
+        GPIO.output(DIR_PIN, GPIO.LOW)
+        
+        # Make 200 steps back
+        for _ in range(200):
+            GPIO.output(STEP_PIN, GPIO.HIGH)
+            time.sleep(0.005)
+            GPIO.output(STEP_PIN, GPIO.LOW)
+            time.sleep(0.005)
+            
+    except KeyboardInterrupt:
+        print("Test stopped by user")
+    finally:
+        GPIO.cleanup()
 
-    print("Moving motor...")
-    for _ in range(STEPS):
-        # Pulse the STEP pin
-        GPIO.output(STEP_PIN, GPIO.HIGH)
-        sleep(STEP_DELAY)
-        GPIO.output(STEP_PIN, GPIO.LOW)
-        sleep(STEP_DELAY)
-
-    print("Motor movement complete!")
-
-except KeyboardInterrupt:
-    print("Test interrupted by user.")
-
-finally:
-    # Cleanup GPIO settings
-    GPIO.cleanup()
+if __name__ == "__main__":
+    print("Starting motor test...")
+    test_motor()
+    print("Test completed")
