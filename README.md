@@ -14,6 +14,8 @@ A visual programming interface for parametric design built with Python, inspired
 - ➡️ Vector: Point, Vector, Preview
 - 🔄 Manipulation: Move
 
+🏗 more under construction...
+
 **Interaction**
 - Drag & drop components
 - Visual node connections
