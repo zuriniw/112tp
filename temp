@@ -1,49 +1,32 @@
 import RPi.GPIO as GPIO
 import time
 
-# Set up GPIO mode
-GPIO.setmode(GPIO.BCM)
-
-# Define pins
+# Pin definitions for EasyDriver
 STEP_PIN = 23  # GPIO23 (Pin 16)
 DIR_PIN = 24   # GPIO24 (Pin 18)
-GND_PIN = 6    # GND
 
-# Setup pins as outputs
+# Setup GPIO
+GPIO.setmode(GPIO.BCM)
 GPIO.setup(STEP_PIN, GPIO.OUT)
 GPIO.setup(DIR_PIN, GPIO.OUT)
 
-def test_motor():
-    try:
-        # Set direction (clockwise)
-        GPIO.output(DIR_PIN, GPIO.HIGH)
-        
-        # Make 200 steps (one revolution for most stepper motors)
-        for _ in range(200):
-            GPIO.output(STEP_PIN, GPIO.HIGH)
-            time.sleep(0.005)  # Adjust this delay to change speed
-            GPIO.output(STEP_PIN, GPIO.LOW)
-            time.sleep(0.005)
-            
-        # Wait a second
-        time.sleep(1)
-        
-        # Reverse direction (counter-clockwise)
-        GPIO.output(DIR_PIN, GPIO.LOW)
-        
-        # Make 200 steps back
-        for _ in range(200):
-            GPIO.output(STEP_PIN, GPIO.HIGH)
-            time.sleep(0.005)
-            GPIO.output(STEP_PIN, GPIO.LOW)
-            time.sleep(0.005)
-            
-    except KeyboardInterrupt:
-        print("Test stopped by user")
-    finally:
-        GPIO.cleanup()
+try:
+    print("Starting smoother motor movement...")
+    
+    # Set initial direction
+    GPIO.output(DIR_PIN, GPIO.HIGH)
+    
+    # Reduced range and longer sleep for smoother movement
+    for _ in range(10):
+        GPIO.output(STEP_PIN, GPIO.HIGH)
+        time.sleep(0.8)  # Longer sleep time for smoother movement
+        GPIO.output(STEP_PIN, GPIO.LOW)
+        time.sleep(0.8)
+    
+    print("Movement complete!")
 
-if __name__ == "__main__":
-    print("Starting motor test...")
-    test_motor()
-    print("Test completed")
+except KeyboardInterrupt:
+    print("\nProgram stopped by user")
+
+finally:
+    GPIO.cleanup()
