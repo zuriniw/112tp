@@ -1,4 +1,4 @@
-# 112tp
+# ShapeShift Playground
  Ziru's 15112 term project
 ![](https://p.sda1.dev/20/8838848da4fe1813658b9b2edc44b5f0/image.png)
 
@@ -42,7 +42,7 @@ A visual programming interface for parametric design built with Python, inspired
 - World coordinate system
 - Standardized value propagation
 
-## Data Structure
+## Data Flow
 ```mermaid
 classDiagram
     Component <|-- TypicleComponent
