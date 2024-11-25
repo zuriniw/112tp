@@ -1,0 +1,46 @@
+import RPi.GPIO as GPIO
+import time
+
+# Define GPIO pins based on the image connections
+DIR_PIN = 24    # Direction pin (yellow wire)
+STEP_PIN = 16   # Step pin (green wire)
+
+# Setup GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+# Configure pins as outputs
+GPIO.setup(DIR_PIN, GPIO.OUT)
+GPIO.setup(STEP_PIN, GPIO.OUT)
+
+def single_step(direction):
+    # Set direction (True for clockwise, False for counterclockwise)
+    GPIO.output(DIR_PIN, direction)
+    
+    # Make one step
+    GPIO.output(STEP_PIN, GPIO.HIGH)
+    time.sleep(0.005)  # Short delay
+    GPIO.output(STEP_PIN, GPIO.LOW)
+    time.sleep(0.005)
+
+try:
+    print("Starting motor test...")
+    
+    # Test clockwise rotation - 50 steps
+    print("Testing clockwise rotation")
+    for _ in range(50):
+        single_step(True)
+    
+    time.sleep(1)  # Pause for a second
+    
+    # Test counterclockwise rotation - 50 steps
+    print("Testing counterclockwise rotation")
+    for _ in range(50):
+        single_step(False)
+
+except KeyboardInterrupt:
+    print("\nTest stopped by user")
+
+finally:
+    GPIO.cleanup()
+    print("GPIO cleanup completed")
