@@ -11,7 +11,7 @@ class CircleCreator(TypicleComponent):
         
         # 设置默认值
         self.inputDefaultValue = {
-            'point': (app.x0, app.y0),
+            'point': ['point',(app.x0, app.y0)],
             'radius': 40
         }
         
@@ -24,15 +24,16 @@ class CircleCreator(TypicleComponent):
         self.hasAllInputs = True
     
     def calculate(self):
-        point_val = self.inputNodes[0].value
+        point_val = self.inputNodes[0].value[1]
         radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
         return [['cir', point_val, radius_val]]
     
     def draw(self):
-        if self.hasAllInputs and self.inputNodes[1].value != 0:
-            x, y = self.inputNodes[0].value
+        if self.hasAllInputs:
+            x, y = self.inputNodes[0].value[1]
             radius = abs(self.inputNodes[1].value)
-            drawCircle(x, y, radius, fill=None, border='blue')
+            if radius != 0:
+                drawCircle(x, y, radius, fill=None, border='blue')
 
 class RectCreator(TypicleComponent):
     def __init__(self, app):
@@ -44,7 +45,7 @@ class RectCreator(TypicleComponent):
         
         # 设置默认值
         self.inputDefaultValue = {
-            'point': (app.x0, app.y0),
+            'point': ['point',(app.x0, app.y0)],
             'width': 40,
             'height': 40
         }
@@ -57,32 +58,18 @@ class RectCreator(TypicleComponent):
         self.outputNodes[0].value = ['rect', (app.x0, app.y0), 40, 40]
         self.hasAllInputs = True
     
-    def updateValue(self, nodeName, value):
-        # 更新输入节点的值
-        for node in self.inputNodes:
-            if node.name == nodeName:
-                node.value = value
-                
-        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
-        
-        # 如果所有输入都有值，更新输出
-        if self.hasAllInputs:
-            point_val = self.inputNodes[0].value
-            width_val = abs(self.inputNodes[1].value)
-            height_val = abs(self.inputNodes[2].value)
-            
-            for node in self.outputNodes:
-                if node.name == 'rect':
-                    # 修改：使用与 CircleCreator 相同的列表格式
-                    node.value = ['rect', point_val, width_val, height_val]
-                    for connection in node.connections:
-                        connection.end_node.receiveValue(node.value)
+    def calculate(self):
+        point_val = self.inputNodes[0].value[1]
+        width_val = abs(self.inputNodes[1].value)
+        height_val = abs(self.inputNodes[2].value)
+        return [['rect', point_val, width_val, height_val]]
 
     
     def draw(self):
-        if self.hasAllInputs and self.inputNodes[1].value != 0 and self.inputNodes[2].value != 0:
-            x, y = self.inputNodes[0].value
+        if self.hasAllInputs:
+            x, y = self.inputNodes[0].value[1]
             width = abs(self.inputNodes[1].value)
             height = abs(self.inputNodes[2].value)
-            drawRect(x - width/2, y - height/2, width, height,
-                    fill=None, border='blue')
+            if width != 0 and height != 0:
+                drawRect(x - width/2, y - height/2, width, height,
+                        fill=None, border='blue')
