@@ -31,6 +31,12 @@ class Slider(Component):
         self.isDraggingHandle = False
         self.outputHeight = app.textHeight
         self.updateNodePositions()
+
+        self.nickname = ''
+
+        # Add right-click event binding
+        self.rightClickX = 0
+        self.rightClickY = 0
     
     def getValue(self):
         # 直接从输出节点获取值
@@ -61,4 +67,8 @@ class Slider(Component):
         drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
         # Draw value label
         drawLabel(f'{self.getValue():.0f}', handleX, self.y - 10)
+        # Draw Nickname
+        if self.nickname:
+            drawLabel(f'[ {self.nickname} ]', self.x + self.width/2, self.y+self.height+8, size = 12)
 
+ 

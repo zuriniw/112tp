@@ -103,6 +103,10 @@ def onAppStart(app):
     ## Group Drag Settings
     app.dragGroupOldMouseX, app.dragGroupOldMouseX = None, None
 
+    ## CstmzingSlider ##
+    app.editingField = None  # 'nickname', 'min', or 'max'
+    app.customInput = ''
+    app.currCstmzSlider = None
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -225,6 +229,9 @@ def redrawAll(app):
     
     if app.isDragSelecting:
         drawDraggingFrame(app)
+    
+    if app.currCstmzSlider:
+        drawCstmzingSliderPopUp(app)
 
 
 
@@ -244,103 +251,139 @@ def onMouseMove(app, mouseX, mouseY):
         button.isHovering = button.hitTest(mouseX, mouseY)
 
 
-def onMousePress(app, mouseX, mouseY):
-    currentTime = time.time()
-    
-    ###### 1. Node and Connection Interaction ######
-    # Check if clicking on a node
-    for component in app.components:
-        for node in component.inputNodes + component.outputNodes:
-            if node.hitTest(mouseX, mouseY):
-                app.draggingNode = node
+def onMousePress(app, mouseX, mouseY, button):
+    if button == 0:
+        currentTime = time.time()
+        
+        ###### 1. Node and Connection Interaction ######
+        # Check if clicking on a node
+        for component in app.components:
+            for node in component.inputNodes + component.outputNodes:
+                if node.hitTest(mouseX, mouseY):
+                    app.draggingNode = node
+                    return
+        
+        # Check if double-clicking on a connection
+        for conn in app.connections:
+            if conn.hitTest(mouseX, mouseY):
+                if currentTime - app.lastClickTime < 0.3:  # Double click
+                    conn.deleteConnection(app)
+                    return
+                app.lastClickTime = currentTime
                 return
-    
-    # Check if double-clicking on a connection
-    for conn in app.connections:
-        if conn.hitTest(mouseX, mouseY):
-            if currentTime - app.lastClickTime < 0.3:  # Double click
-                conn.deleteConnection(app)
-                return
-            app.lastClickTime = currentTime
-            return
-    
-    ###### 2. Toolbar Interaction ######
-    # Check toolbar buttons
-    for button in app.currButtomList:
-        if button.hitTest(mouseX, mouseY):
-            app.currDraggingComponent = None
-            app.isDraggingNewComponent = True
-            app.draggedComponentType = button.component
-            return
-    
-    # Check toolbar tabs
-    for tab in app.tabs:
-        if tab.hitTest(mouseX, mouseY):
-            app.currDraggingComponent = None
-            for t in app.tabs:
-                t.isActive = (t == tab)
-            app.activeCategory = tab.category
-            loadToolbar(app)
-            return
-    
-    ###### 3. Toggle Panel Interaction ######
-    for toggle in app.toggles:
-        if toggle.hitTest(mouseX, mouseY):
-            toggle.isOn = not toggle.isOn
-            var_name = 'is' + toggle.name.replace(' ', '')
-            setattr(app, var_name, toggle.isOn)
-            app.toggleStates[toggle.name] = toggle.isOn
-            return
-    
-    ###### 4. Component Interaction ######
-    hitComponent = False
-    for component in app.components:
-        if component.hitTest(mouseX, mouseY):
-            hitComponent = True
-            
-            # Handle double-click deletion
-            if currentTime - app.lastClickTime < 0.3:
-                component.deleteComponent(app)
+        
+        ###### 2. Toolbar Interaction ######
+        # Check toolbar buttons
+        for button in app.currButtomList:
+            if button.hitTest(mouseX, mouseY):
                 app.currDraggingComponent = None
+                app.isDraggingNewComponent = True
+                app.draggedComponentType = button.component
                 return
-            
-            # Handle slider interaction
-            if isinstance(component, Slider):
-                if component.hitTestHandle(mouseX, mouseY):
-                    component.isDraggingHandle = True
-                    app.currDraggingComponent = component
+        
+        # Check toolbar tabs
+        for tab in app.tabs:
+            if tab.hitTest(mouseX, mouseY):
+                app.currDraggingComponent = None
+                for t in app.tabs:
+                    t.isActive = (t == tab)
+                app.activeCategory = tab.category
+                loadToolbar(app)
+                return
+        
+        ###### 3. Toggle Panel Interaction ######
+        for toggle in app.toggles:
+            if toggle.hitTest(mouseX, mouseY):
+                toggle.isOn = not toggle.isOn
+                var_name = 'is' + toggle.name.replace(' ', '')
+                setattr(app, var_name, toggle.isOn)
+                app.toggleStates[toggle.name] = toggle.isOn
+                return
+        
+        ###### 4. Component Interaction ######
+        hitComponent = False
+        for component in app.components:
+            if component.hitTest(mouseX, mouseY):
+                hitComponent = True
+                
+                # Handle double-click deletion
+                if currentTime - app.lastClickTime < 0.3:
+                    component.deleteComponent(app)
+                    app.currDraggingComponent = None
+                    return
+                
+                # Handle slider interaction
+                if isinstance(component, Slider):
+                    if component.hitTestHandle(mouseX, mouseY):
+                        component.isDraggingHandle = True
+                        app.currDraggingComponent = component
+                    else:
+                        app.currDraggingComponent = component
+                        component.isDragging = True
+                        component.isDraggingHandle = False
+                # Handle regular component interaction
                 else:
-                    app.currDraggingComponent = component
-                    component.isDragging = True
-                    component.isDraggingHandle = False
-            # Handle regular component interaction
-            else:
-                if not app.selectedCompo:  # Single component drag
-                    app.currDraggingComponent = component
-                    component.isDragging = True
-                else:  # Group drag
-                    app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
-                    app.currDraggingComponent = app.selectedCompo
-                    for compo in app.selectedCompo:
-                        compo.isDragging = True
+                    if not app.selectedCompo:  # Single component drag
+                        app.currDraggingComponent = component
+                        component.isDragging = True
+                    else:  # Group drag
+                        app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+                        app.currDraggingComponent = app.selectedCompo
+                        for compo in app.selectedCompo:
+                            compo.isDragging = True
+                
+                app.lastClickTime = currentTime
+                break
+        
+        ###### 5. Empty Space Interaction ######
+        if not hitComponent:
+            app.currDraggingComponent = None
+            app.currCstmzSlider = None
             
-            app.lastClickTime = currentTime
-            break
+        if app.currDraggingComponent is None:
+            # Clear selection
+            for compo in app.selectedCompo:
+                compo.isSelected = False
+            app.selectedCompo = []
+            
+            # Initialize drag selection
+            app.isDragSelecting = True
+            app.dragFrameStart = (mouseX, mouseY)
+            app.dragFrameEnd = (mouseX, mouseY)
+
+        ###### 6. CstmzingSlider pop-up window interaction ######
     
-    ###### 5. Empty Space Interaction ######
-    if not hitComponent:
-        app.currDraggingComponent = None
-        
-    if app.currDraggingComponent is None:
-        # Clear selection
-        for compo in app.selectedCompo:
-            compo.isSelected = False
-        app.selectedCompo = []
-        
-        # Initialize drag selection
-        app.isDragSelecting = True
-        app.dragFrameStart = (mouseX, mouseY)
-        app.dragFrameEnd = (mouseX, mouseY)
+    # Check for right-click on slider
+    if button == 2:
+        for component in app.components:
+            if isinstance(component, Slider) and component.hitTest(mouseX, mouseY):
+                app.currCstmzSlider = component
+                return
+
+def drawCstmzingSliderPopUp(app):
+    currSlider = app.currCstmzSlider
+    # Draw popup background
+    drawRect(currSlider.x, currSlider.y - 80, 120, 70,
+            fill='white', border='black')
+    
+    # Draw fields
+    fields = {
+        'nickname': currSlider.nickname,
+        'min': str(currSlider.min_val),
+        'max': str(currSlider.max_val)
+    }
+    
+    y_offset = -70
+    for field, value in fields.items():
+        # Highlight editing field
+        if field == app.editingField:
+            drawRect(currSlider.x, currSlider.y + y_offset - 10, 
+                    120, 20, fill='lightBlue', opacity=30)
+            text = f"{field}: {app.customInput}_"  # Show cursor
+        else:
+            text = f"{field}: {value}"
+        drawLabel(text, currSlider.x + 60, currSlider.y + y_offset)
+        y_offset += 20
 
 
 def onMouseDrag(app, mouseX, mouseY):
@@ -478,30 +521,66 @@ def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
 
 
 def onKeyPress(app, key):
-    if key == 's':
-        newSlider = Slider(app)
-        app.components.append(newSlider)
-    elif key == 'c':
-        newCircleCreator = CircleCreator(app)
-        newCircleCreator.updateNodePositions()
-        app.components.append(newCircleCreator)     
-    elif key == 'r':
-        newRectCreator = RectCreator(app)
-        newRectCreator.updateNodePositions()
-        app.components.append(newRectCreator)
-    elif key == 'p':
-        newPoint = Point(app)
-        newPoint.updateNodePositions()
-        app.components.append(newPoint)
+    if app.currCstmzSlider:
+        if key == 'tab':
+            fields = ['nickname', 'min', 'max']
+            if app.editingField is None:
+                app.editingField = fields[0]
+                app.customInput = ''
+            else:
+                idx = (fields.index(app.editingField) + 1) % len(fields)
+                app.editingField = fields[idx]
+                app.customInput = ''
+        elif key == 'enter':
+            # Save changes and exit
+            if app.editingField == 'nickname':
+                app.currCstmzSlider.nickname = app.customInput
+            elif app.editingField == 'min':
+                try:
+                    app.currCstmzSlider.min_val = int(app.customInput)
+                except ValueError:
+                    pass
+            elif app.editingField == 'max':
+                try:
+                    app.currCstmzSlider.max_val = int(app.customInput)
+                except ValueError:
+                    pass
+            app.currCstmzSlider = None
+            app.editingField = None
+            app.customInput = ''
+        elif key == 'escape':
+            # Discard changes and exit
+            app.currCstmzSlider = None
+            app.editingField = None
+            app.customInput = ''
+        elif key == 'backspace':
+            app.customInput = app.customInput[:-1]
+        elif len(key) == 1:  # Single character input
+            app.customInput += key
 
-    elif key in ['backspace', 'delete']:
-        if app.selectedCompo:
-            for compo in app.selectedCompo:
-                compo.deleteComponent(app)
-            # Clear selection
-            app.selectedCompo = []
+    else:        
+        if key == 's':
+            newSlider = Slider(app)
+            app.components.append(newSlider)
+        elif key == 'c':
+            newCircleCreator = CircleCreator(app)
+            newCircleCreator.updateNodePositions()
+            app.components.append(newCircleCreator)     
+        elif key == 'r':
+            newRectCreator = RectCreator(app)
+            newRectCreator.updateNodePositions()
+            app.components.append(newRectCreator)
+        elif key == 'p':
+            newPoint = Point(app)
+            newPoint.updateNodePositions()
+            app.components.append(newPoint)
 
-
+        elif key in ['backspace', 'delete']:
+            if app.selectedCompo:
+                for compo in app.selectedCompo:
+                    compo.deleteComponent(app)
+                # Clear selection
+                app.selectedCompo = []
         
 def main():
     runApp()
