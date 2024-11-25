@@ -52,26 +52,30 @@ class Vector(TypicleComponent):
         self.isGeo = False
         super().__init__(app, inputs, outputs, name)
         
-        # 设置输入节点的默认值
-        for node in self.inputNodes:
-            if node.name == 'start':
-                node.value = (app.x0, app.y0)
-            elif node.name == 'end':
-                node.value = (app.x0+200, app.y0-200)
-        
-        self.hasAllInputs = True
-
         self.inputDefaultValue = {
-        'start': (app.x0, app.y0),
-        'end': (app.x0+200, app.y0-200)
+            'start': (app.x0, app.y0),
+            'end': (app.x0+200, app.y0-200)
         }
+        
+        for node in self.inputNodes:
+            node.value = self.inputDefaultValue[node.name]
+            
+        self.hasAllInputs = True
     
     def calculate(self):
-        start = self.inputNodes[0].value
-        end = self.inputNodes[1].value
-        dx = end[0] - start[0]
-        dy = end[1] - start[1]
-        return [(dx, dy)]  # 返回输出值列表
+        start = self.inputNodes[0].value[1]
+        end = self.inputNodes[1].value[1]
+        
+        # Add type checking and conversion
+        if isinstance(start, tuple) and isinstance(end, tuple):
+            try:
+                dx = end[0] - start[0]
+                dy = end[1] - start[1]
+                return [(dx, dy)]
+            except (ValueError, TypeError):
+                return [(0, 0)]
+        return [(0, 0)]
+
 
 
 
@@ -86,7 +90,7 @@ class VectorPreview(TypicleComponent):
         
         self.inputDefaultValue = {
             'vector': (50, -50),
-            'anchor': (app.x0, app.y0)
+            'anchor': ['point',(app.x0, app.y0)]
         }
         
         for node in self.inputNodes:
@@ -99,7 +103,7 @@ class VectorPreview(TypicleComponent):
     
     def draw(self):
         vector_val = self.inputNodes[0].value
-        anchor_val = self.inputNodes[1].value
+        anchor_val = self.inputNodes[1].value[1]
         if vector_val and anchor_val:
             dx, dy = vector_val
             x0, y0 = anchor_val
