@@ -362,24 +362,28 @@ def onMousePress(app, mouseX, mouseY, button):
 
 def drawCstmzingSliderPopUp(app):
     currSlider = app.currCstmzSlider
-    # Draw popup background
-    drawRect(currSlider.x, currSlider.y - 80, 120, 70,
-            fill='white', border='black')
     
-    # Draw fields
     fields = {
         'nickname': currSlider.nickname,
         'min': str(currSlider.min_val),
         'max': str(currSlider.max_val)
     }
+
+    # Draw popup background
+    drawRect(currSlider.x, currSlider.y - 80, 120, 20*len(fields),
+            fill='white', border='black')
     
+    # Draw fields
     y_offset = -70
     for field, value in fields.items():
         # Highlight editing field
         if field == app.editingField:
             drawRect(currSlider.x, currSlider.y + y_offset - 10, 
                     120, 20, fill='lightBlue', opacity=30)
-            text = f"{field}: {app.customInput}_"  # Show cursor
+            if app.customInput != '':
+                text = f"{field}: {app.customInput}_"  # Show cursor
+            else:
+                text = f"{field}: {value}_"
         else:
             text = f"{field}: {value}"
         drawLabel(text, currSlider.x + 60, currSlider.y + y_offset)
@@ -537,16 +541,24 @@ def onKeyPress(app, key):
                 app.currCstmzSlider.nickname = app.customInput
             elif app.editingField == 'min':
                 try:
-                    app.currCstmzSlider.min_val = int(app.customInput)
+                    new_min = int(app.customInput)
+                    # 检查新的最小值是否小于最大值
+                    if new_min < app.currCstmzSlider.max_val:
+                        app.currCstmzSlider.min_val = new_min
                 except ValueError:
                     pass
             elif app.editingField == 'max':
                 try:
-                    app.currCstmzSlider.max_val = int(app.customInput)
+                    new_max = int(app.customInput)
+                    # 检查新的最大值是否大于最小值
+                    if new_max > app.currCstmzSlider.min_val:
+                        app.currCstmzSlider.max_val = new_max
                 except ValueError:
                     pass
-            app.currCstmzSlider = None
-            app.editingField = None
+            app.currCstmzSlider.outputNodes[0].value = (app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2
+
+            #app.currCstmzSlider = None
+            #app.editingField = None
             app.customInput = ''
         elif key == 'escape':
             # Discard changes and exit
