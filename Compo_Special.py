@@ -33,11 +33,29 @@ class Slider(Component):
         self.updateNodePositions()
 
         self.nickname = ''
+        self.isPinned = False
 
         # Add right-click event binding
         self.rightClickX = 0
         self.rightClickY = 0
-    
+
+        self.fields = {
+            'nickname': self.nickname,
+            'min': str(self.min_val),
+            'max': str(self.max_val),
+            'pin':self.isPinned
+        }
+
+    def updateFields(self):
+        self.fields = {
+            'nickname': self.nickname,
+            'min': str(self.min_val),
+            'max': str(self.max_val),
+            'pin':self.isPinned
+        }
+        
+        
+
     def getValue(self):
         # 直接从输出节点获取值
         return self.outputNodes[0].value

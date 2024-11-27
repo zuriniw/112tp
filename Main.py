@@ -107,6 +107,8 @@ def onAppStart(app):
     app.editingField = None  # 'nickname', 'min', or 'max'
     app.customInput = ''
     app.currCstmzSlider = None
+    
+    app.currGeoComponent = None
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -189,19 +191,15 @@ def drawDraggingFrame(app):
 def drawCstmzingSliderPopUp(app):
     currSlider = app.currCstmzSlider
     if currSlider in app.components:
-        fields = {
-            'nickname': currSlider.nickname,
-            'min': str(currSlider.min_val),
-            'max': str(currSlider.max_val)
-        }
-
+        fields = currSlider.fields
+        height = 20*len(fields)
+        y_offset = -1 * (height + 10)
+        
         # Draw popup background
-        drawRect(currSlider.x, currSlider.y - 80, 120, 20*len(fields),
-                fill='white', border='black')
+        drawRect(currSlider.x, currSlider.y + y_offset - 10 , 120, height, fill='white', border='black')
+        drawLine(currSlider.x+1.5, currSlider.y - 20,currSlider.x+1.5, currSlider.y, dashes = (3,3))
         
         # Draw fields
-        y_offset = -70
-        drawLine(currSlider.x+1.5, currSlider.y - 20,currSlider.x+1.5, currSlider.y, dashes = (3,3))
         for field, value in fields.items():
             # Highlight editing field
             if field == app.editingField:
@@ -564,7 +562,7 @@ def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
 def onKeyPress(app, key):
     if app.currCstmzSlider:
         if key == 'tab':
-            fields = ['nickname', 'min', 'max']
+            fields = list(app.currCstmzSlider.fields.keys())
             if app.editingField is None:
                 app.editingField = fields[0]
                 app.customInput = ''
@@ -592,6 +590,11 @@ def onKeyPress(app, key):
                         app.currCstmzSlider.max_val = new_max
                 except ValueError:
                     pass
+
+            elif app.editingField == 'pin':
+                app.currCstmzSlider.isPinned = not app.currCstmzSlider.isPinned
+
+            app.currCstmzSlider.updateFields()
             app.currCstmzSlider.outputNodes[0].value = (app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2
 
             #app.currCstmzSlider = None
@@ -607,7 +610,7 @@ def onKeyPress(app, key):
         elif len(key) == 1:  # Single character input
             app.customInput += key
 
-    if hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+    elif hasattr(app, 'currGeoComponent') and app.currGeoComponent:
         if key == 'tab':
             # 切换显示状态
             app.currGeoComponent.isDisplay = not app.currGeoComponent.isDisplay
