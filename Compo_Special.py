@@ -87,6 +87,7 @@ class Slider(Component):
         drawLabel(f'{self.getValue():.0f}', handleX, self.y - 10)
         # Draw Nickname
         if self.nickname:
-            drawLabel(f'[ {self.nickname} ]', self.x + self.width/2, self.y+self.height+8, size = 12)
+            appendix = '^' if self.isPinned else ''
+            drawLabel(f'[ {self.nickname} ]'+ appendix, self.x + self.width/2, self.y+self.height+8, size = 12)
 
  

@@ -110,6 +110,9 @@ def onAppStart(app):
     
     app.currGeoComponent = None
 
+    app.pinnedSliders = []
+    app.pinnedSliderHeight = 100
+
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
     app.currButtomList = [ToolbarButton(app, app.borderX + currbuttomCompoList.index(buttomCompo) * (60 + app.paddingX), 40, buttomCompo) for buttomCompo in currbuttomCompoList]
@@ -240,6 +243,18 @@ def drawGeoComponentPopUp(app):
             drawLabel(text, currComponent.x + 60, currComponent.y + y_offset)
             y_offset += 20
 
+def drawPinnedSliders(app):
+    drawLine(0, app.height-app.pinnedSliderHeight, app.width, app.height-app.pinnedSliderHeight)
+    startX = app.borderX
+    for slider in app.pinnedSliders:
+        i = app.pinnedSliders.index(slider)
+        x = startX + 100 * i
+        y = app.height - app.pinnedSliderHeight + app.borderY
+        drawLabel(f'slider:[ {slider.nickname} ]', x, y)
+
+        #slider.drawUI()
+
+
 def redrawAll(app):
     drawPlayground(app)
     drawToolbar(app)
@@ -272,8 +287,8 @@ def redrawAll(app):
             preview.updateNodePositions()
             # Draw the preview
             preview.drawUI()
-
-    drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
+    deltaPinnedSlider = 0 if app.isCompDisplay else app.pinnedSliderHeight
+    drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY - deltaPinnedSlider, border = 'black', fill = 'white')
     for toggle in app.toggles:
         toggle.drawUI()
     
@@ -289,6 +304,9 @@ def redrawAll(app):
     
     if hasattr(app, 'currGeoComponent') and app.currGeoComponent:
         drawGeoComponentPopUp(app)
+    
+    if not app.isCompDisplay:
+        drawPinnedSliders(app)
 
 
 
@@ -590,9 +608,14 @@ def onKeyPress(app, key):
                         app.currCstmzSlider.max_val = new_max
                 except ValueError:
                     pass
-
+            # pin在画布底下
             elif app.editingField == 'pin':
                 app.currCstmzSlider.isPinned = not app.currCstmzSlider.isPinned
+                if app.currCstmzSlider.isPinned:
+                    app.pinnedSliders.append(app.currCstmzSlider)
+                else:
+                    if app.currCstmzSlider in app.pinnedSliders:
+                        app.pinnedSliders.remove(app.currCstmzSlider)
 
             app.currCstmzSlider.updateFields()
             app.currCstmzSlider.outputNodes[0].value = (app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2
