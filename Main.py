@@ -248,7 +248,7 @@ def drawPinnedSliders(app):
     startX = app.borderX
     for slider in app.pinnedSliders:
         i = app.pinnedSliders.index(slider)
-        x = startX + 100 * i
+        x = startX + 140 * i
         y = app.height - app.pinnedSliderHeight + app.borderY*2
         slider.drawTwinUI(x,y)
 
@@ -357,80 +357,81 @@ def onMousePress(app, mouseX, mouseY, button):
                 app.toggleStates[toggle.name] = toggle.isOn
                 return
             
-        ###### 1. Node and Connection Interaction ######
-        # Check if clicking on a node
-        for component in app.components:
-            for node in component.inputNodes + component.outputNodes:
-                if node.hitTest(mouseX, mouseY):
-                    app.draggingNode = node
+        if  app.isCompDisplay:    
+            ###### 1. Node and Connection Interaction ######
+            # Check if clicking on a node
+            for component in app.components:
+                for node in component.inputNodes + component.outputNodes:
+                    if node.hitTest(mouseX, mouseY):
+                        app.draggingNode = node
+                        return
+            
+            # Check if double-clicking on a connection
+            for conn in app.connections:
+                if conn.hitTest(mouseX, mouseY):
+                    if currentTime - app.lastClickTime < 0.3:  # Double click
+                        conn.deleteConnection(app)
+                        return
+                    app.lastClickTime = currentTime
                     return
-        
-        # Check if double-clicking on a connection
-        for conn in app.connections:
-            if conn.hitTest(mouseX, mouseY):
-                if currentTime - app.lastClickTime < 0.3:  # Double click
-                    conn.deleteConnection(app)
-                    return
-                app.lastClickTime = currentTime
-                return
-        
-        ###### 4. Component Interaction ######
-        hitComponent = False
-        for component in app.components:
-            if component.hitTest(mouseX, mouseY):
-                hitComponent = True
-                
-                # Handle double-click deletion
-                if currentTime - app.lastClickTime < 0.3:
-                    component.deleteComponent(app)
-                    app.currDraggingComponent = None
-                    return
-                
-                # Handle slider interaction
-                if isinstance(component, Slider):
-                    if component.hitTestHandle(mouseX, mouseY):
-                        component.isDraggingHandle = True
-                        app.currDraggingComponent = component
+            
+            ###### 4. Component Interaction ######
+            hitComponent = False
+            for component in app.components:
+                if component.hitTest(mouseX, mouseY):
+                    hitComponent = True
+                    
+                    # Handle double-click deletion
+                    if currentTime - app.lastClickTime < 0.3:
+                        component.deleteComponent(app)
+                        app.currDraggingComponent = None
+                        return
+                    
+                    # Handle slider interaction
+                    if isinstance(component, Slider):
+                        if component.hitTestHandle(mouseX, mouseY):
+                            component.isDraggingHandle = True
+                            app.currDraggingComponent = component
+                        else:
+                            app.currDraggingComponent = component
+                            component.isDragging = True
+                            component.isDraggingHandle = False
+                    # Handle regular component interaction
                     else:
-                        app.currDraggingComponent = component
-                        component.isDragging = True
-                        component.isDraggingHandle = False
-                # Handle regular component interaction
-                else:
-                    if not app.selectedCompo:  # Single component drag
-                        app.currDraggingComponent = component
-                        component.isDragging = True
-                    else:  # Group drag
-                        app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
-                        app.currDraggingComponent = app.selectedCompo
-                        for compo in app.selectedCompo:
-                            compo.isDragging = True
+                        if not app.selectedCompo:  # Single component drag
+                            app.currDraggingComponent = component
+                            component.isDragging = True
+                        else:  # Group drag
+                            app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+                            app.currDraggingComponent = app.selectedCompo
+                            for compo in app.selectedCompo:
+                                compo.isDragging = True
+                    
+                    app.lastClickTime = currentTime
+                    break
+            
+            ###### 5. Empty Space Interaction ######
+            if not hitComponent:
+                app.currDraggingComponent = None
+                app.currCstmzSlider = None
+                app.currGeoComponent = None
                 
-                app.lastClickTime = currentTime
-                break
-        
-        ###### 5. Empty Space Interaction ######
-        if not hitComponent:
-            app.currDraggingComponent = None
-            app.currCstmzSlider = None
-            app.currGeoComponent = None
-            
-        if app.currDraggingComponent is None:
-            # Clear selection
-            for compo in app.selectedCompo:
-                compo.isSelected = False
-            app.selectedCompo = []
-            
-            # Initialize drag selection
-            app.isDragSelecting = True
-            app.dragFrameStart = (mouseX, mouseY)
-            app.dragFrameEnd = (mouseX, mouseY)
+            if app.currDraggingComponent is None:
+                # Clear selection
+                for compo in app.selectedCompo:
+                    compo.isSelected = False
+                app.selectedCompo = []
+                
+                # Initialize drag selection
+                app.isDragSelecting = True
+                app.dragFrameStart = (mouseX, mouseY)
+                app.dragFrameEnd = (mouseX, mouseY)
         
         ####### pinnned sliders ######
-        if not app.isCompDisplay:
+        elif not app.isCompDisplay:
             for slider in app.pinnedSliders:
                 i = app.pinnedSliders.index(slider)
-                x = app.borderX + 100 * i
+                x = app.borderX + 140 * i
                 y = app.height - app.pinnedSliderHeight + app.borderY*2
                 
                 if slider.hitTestHandle(mouseX, mouseY, x, y):
@@ -441,8 +442,7 @@ def onMousePress(app, mouseX, mouseY, button):
                     }
                     return
 
-    ###### 6. CstmzingSlider pop-up window interaction ######
-    
+    ###### 6. CstmzingSlider pop-up window interaction ######  
     # Check for right-click on slider
     elif button == 2:
         for component in app.components:

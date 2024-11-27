@@ -33,7 +33,7 @@ class CircleCreator(TypicleComponent):
         if self.hasAllInputs:
             x, y = self.inputNodes[0].value[1]
             radius = abs(self.inputNodes[1].value)
-            if radius != 0:
+            if int(radius) != 0:
                 drawCircle(x, y, radius, fill=None, border='blue', visible=self.isDisplay)
 
 class RectCreator(TypicleComponent):

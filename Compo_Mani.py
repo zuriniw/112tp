@@ -7,6 +7,7 @@ class Move(TypicleComponent):
         outputs = ['moved']
         name = 'Move\nGeo\n↗'
         self.isGeo = True
+        self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
@@ -55,16 +56,16 @@ class Move(TypicleComponent):
             
             if currShape == 'cir':
                 r = geo_val[2]
-                if r != 0:
-                    drawCircle(x + dx, y + dy, r, fill=None, border='blue')
+                if int(r) != 0:
+                    drawCircle(x + dx, y + dy, r, fill=None, border='blue',visible=self.isDisplay)
             elif currShape == 'rect':
                 w = geo_val[2]
                 h = geo_val[3]
-                if w != 0 and h != 0:
-                    drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue')
+                if int(w) != 0 and int(h) != 0:
+                    drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue',visible=self.isDisplay)
             elif currShape == 'point':
                 #r = geo_val[2]
-                drawCircle(x + dx, y + dy, 4, fill='white', border='blue', borderWidth=2)
+                drawCircle(x + dx, y + dy, 4, fill='white', border='blue', borderWidth=2,visible=self.isDisplay)
             
-            drawLine(x, y, x + dx, y + dy, fill='lightBlue', dashes=True)
+            drawLine(x, y, x + dx, y + dy, fill='lightBlue', dashes=True,visible=self.isDisplay)
 
