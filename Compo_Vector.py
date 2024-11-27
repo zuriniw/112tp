@@ -78,9 +78,6 @@ class Vector(TypicleComponent):
         return [(0, 0)]
 
 
-
-
-    
 class VectorPreview(TypicleComponent):
     def __init__(self, app):
         inputs = ['vector', 'anchor']

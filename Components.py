@@ -1,6 +1,5 @@
 from cmu_graphics import *
 from Node import *
-
 ########################################################################################
 # COMPONENT is the most basic class of compo: 
 #       - set the birthplace
@@ -15,6 +14,7 @@ class Component:
         self.outputNodes = []
         self.isDragging = False
         self.isSelected = False
+        self.isPinned = False
         self.updateNodePositions()
 
     def updateNodePositions(self):
@@ -33,6 +33,12 @@ class Component:
         # 2. remove compo from app
         if self in app.components:
             app.components.remove(self)
+        
+        if self.isPinned:
+            for s in app.pinnedSliders:
+                if s.original_slider == self:
+                    app.pinnedSliders.remove(s)
+
 
 
 ########################################################################################

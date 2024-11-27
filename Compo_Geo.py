@@ -72,6 +72,6 @@ class RectCreator(TypicleComponent):
             x, y = self.inputNodes[0].value[1]
             width = abs(self.inputNodes[1].value)
             height = abs(self.inputNodes[2].value)
-            if width != 0 and height != 0:
+            if int(width) != 0 and int(height) != 0:
                 drawRect(x - width/2, y - height/2, width, height,
                         fill=None, border='blue')

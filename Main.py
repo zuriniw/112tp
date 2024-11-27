@@ -1,6 +1,7 @@
 from cmu_graphics import *
 from Components import *
-from Compo_Special import *
+from Compo_Special_Slider import *
+from Compo_Special_Panel import *
 from Compo_Geo import *
 from Compo_Math import *
 from Compo_Vector import *
@@ -80,7 +81,7 @@ def onAppStart(app):
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
         'Manipulation': [Move],
-        'Analyze': [],
+        'Analyze': [Panel],
         'Vector': [Point, Vector, VectorPreview]
     }
     app.activeCategory = 'Geometry'
@@ -104,7 +105,7 @@ def onAppStart(app):
     app.dragGroupOldMouseX, app.dragGroupOldMouseX = None, None
 
     ## CstmzingSlider ##
-    app.editingField = None  # 'nickname', 'min', or 'max'
+    app.editingField = 'nickname'  # 'nickname', 'min', or 'max'
     app.customInput = ''
     app.currCstmzSlider = None
     
@@ -112,6 +113,7 @@ def onAppStart(app):
 
     app.pinnedSliders = []
     app.pinnedSliderHeight = 100
+    app.currDraggingPinnedSlider = None
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -326,136 +328,141 @@ def onMouseMove(app, mouseX, mouseY):
 
 
 def onMousePress(app, mouseX, mouseY, button):
+    # Handle left mouse button interaction
     if button == 0:
         currentTime = time.time()
 
-        ###### 2. Toolbar Interaction ######
-        # Check toolbar buttons
+        ####### 1. Toolbar Interaction ######
+        # Check interaction with toolbar buttons
         for button in app.currButtomList:
             if button.hitTest(mouseX, mouseY):
-                app.currDraggingComponent = None
-                app.isDraggingNewComponent = True
-                app.draggedComponentType = button.component
+                app.currDraggingComponent = None  # Reset dragging state
+                app.isDraggingNewComponent = True  # Enable dragging new component
+                app.draggedComponentType = button.component  # Set component type
                 return
         
-        # Check toolbar tabs
+        # Check interaction with toolbar tabs
         for tab in app.tabs:
             if tab.hitTest(mouseX, mouseY):
-                app.currDraggingComponent = None
+                app.currDraggingComponent = None  # Reset dragging state
                 for t in app.tabs:
-                    t.isActive = (t == tab)
-                app.activeCategory = tab.category
-                loadToolbar(app)
+                    t.isActive = (t == tab)  # Activate selected tab
+                app.activeCategory = tab.category  # Update active category
+                loadToolbar(app)  # Load the toolbar for the active tab
                 return
         
-        ###### 3. Toggle Panel Interaction ######
+        ####### 2. Toggle Panel Interaction ######
+        # Handle toggle button state changes
         for toggle in app.toggles:
             if toggle.hitTest(mouseX, mouseY):
-                toggle.isOn = not toggle.isOn
-                var_name = 'is' + toggle.name.replace(' ', '')
-                setattr(app, var_name, toggle.isOn)
-                app.toggleStates[toggle.name] = toggle.isOn
+                toggle.isOn = not toggle.isOn  # Toggle the state
+                var_name = 'is' + toggle.name.replace(' ', '')  # Create attribute name
+                setattr(app, var_name, toggle.isOn)  # Update attribute dynamically
+                app.toggleStates[toggle.name] = toggle.isOn  # Update toggle states
                 return
             
-        if  app.isCompDisplay:    
-            ###### 1. Node and Connection Interaction ######
+        ####### 3. Component Display Interaction ######
+        if app.isCompDisplay:
+            ####### 3.1 Node and Connection Interaction ######
             # Check if clicking on a node
             for component in app.components:
                 for node in component.inputNodes + component.outputNodes:
                     if node.hitTest(mouseX, mouseY):
-                        app.draggingNode = node
+                        app.draggingNode = node  # Start dragging the node
                         return
             
-            # Check if double-clicking on a connection
+            # Check for double-click on a connection to delete it
             for conn in app.connections:
                 if conn.hitTest(mouseX, mouseY):
-                    if currentTime - app.lastClickTime < 0.3:  # Double click
-                        conn.deleteConnection(app)
+                    if currentTime - app.lastClickTime < 0.3:  # Detect double-click
+                        conn.deleteConnection(app)  # Delete the connection
                         return
-                    app.lastClickTime = currentTime
+                    app.lastClickTime = currentTime  # Update last click time
                     return
             
-            ###### 4. Component Interaction ######
+            ####### 3.2 Component Interaction ######
             hitComponent = False
             for component in app.components:
                 if component.hitTest(mouseX, mouseY):
                     hitComponent = True
                     
-                    # Handle double-click deletion
-                    if currentTime - app.lastClickTime < 0.3:
-                        component.deleteComponent(app)
-                        app.currDraggingComponent = None
+                    # Handle double-click to delete component
+                    if currentTime - app.lastClickTime < 0.3:  # Detect double-click
+                        component.deleteComponent(app)  # Delete the component
+                        app.currDraggingComponent = None  # Reset dragging state
                         return
                     
-                    # Handle slider interaction
+                    # Handle slider-specific interaction
                     if isinstance(component, Slider):
-                        if component.hitTestHandle(mouseX, mouseY):
+                        if component.hitTestHandle(mouseX, mouseY):  # Check handle
                             component.isDraggingHandle = True
                             app.currDraggingComponent = component
-                        else:
+                        else:  # General dragging of the slider
                             app.currDraggingComponent = component
                             component.isDragging = True
                             component.isDraggingHandle = False
-                    # Handle regular component interaction
+                    # Handle general component interaction
                     else:
-                        if not app.selectedCompo:  # Single component drag
+                        if not app.selectedCompo:  # Single component dragging
                             app.currDraggingComponent = component
                             component.isDragging = True
-                        else:  # Group drag
+                        else:  # Group dragging
                             app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
                             app.currDraggingComponent = app.selectedCompo
                             for compo in app.selectedCompo:
                                 compo.isDragging = True
                     
-                    app.lastClickTime = currentTime
+                    app.lastClickTime = currentTime  # Update last click time
                     break
             
-            ###### 5. Empty Space Interaction ######
+            ####### 3.3 Empty Space Interaction ######
             if not hitComponent:
-                app.currDraggingComponent = None
-                app.currCstmzSlider = None
-                app.currGeoComponent = None
+                app.currDraggingComponent = None  # Reset dragging state
+                app.currCstmzSlider = None  # Clear custom slider
+                app.currGeoComponent = None  # Clear geometric component
+                app.editingField = 'nickname'
                 
-            if app.currDraggingComponent is None:
-                # Clear selection
-                for compo in app.selectedCompo:
-                    compo.isSelected = False
-                app.selectedCompo = []
-                
-                # Initialize drag selection
-                app.isDragSelecting = True
-                app.dragFrameStart = (mouseX, mouseY)
-                app.dragFrameEnd = (mouseX, mouseY)
+                if app.currDraggingComponent is None:
+                    for compo in app.selectedCompo:
+                        compo.isSelected = False  # Deselect all components
+                    app.selectedCompo = []  # Clear selected components
+                    
+                    app.isDragSelecting = True  # Start drag selection
+                    app.dragFrameStart = (mouseX, mouseY)  # Set selection start point
+                    app.dragFrameEnd = (mouseX, mouseY)  # Set selection end point
         
-        ####### pinnned sliders ######
+        ####### 4. Pinned Sliders Interaction ######
         elif not app.isCompDisplay:
+            # Check if a pinned slider handle is clicked
             for slider in app.pinnedSliders:
-                i = app.pinnedSliders.index(slider)
-                x = app.borderX + 140 * i
-                y = app.height - app.pinnedSliderHeight + app.borderY*2
+                i = app.pinnedSliders.index(slider)  # Get slider index
+                x = app.borderX + 140 * i  # Calculate slider position
+                y = app.height - app.pinnedSliderHeight + app.borderY * 2
                 
                 if slider.hitTestHandle(mouseX, mouseY, x, y):
-                    app.currDraggingPinnedSlider = {
+                    app.currDraggingPinnedSlider = {  # Start dragging the pinned slider
                         'slider': slider,
                         'x': x,
                         'y': y
                     }
                     return
 
-    ###### 6. CstmzingSlider pop-up window interaction ######  
-    # Check for right-click on slider
+    ####### 5. Slider Customization Interaction ######
+    # Handle right mouse button interaction
     elif button == 2:
+        # Check if clicking on sliders or geometric components
         for component in app.components:
-            if isinstance(component, Slider) and component.hitTest(mouseX, mouseY) and (not app.currGeoComponent):
-                app.currCstmzSlider = component
+            if isinstance(component, Slider) and component.hitTest(mouseX, mouseY) and not app.currGeoComponent:
+                app.currCstmzSlider = component  # Open slider customization
                 return
             elif (isinstance(component, TypicleComponent) and 
-            component.isGeo and 
-            component.hitTest(mouseX, mouseY)) and (not app.currCstmzSlider):
-                app.currGeoComponent = component
-                app.editingField = 'display'
-                app.customInput = ''
+                  component.isGeo and 
+                  component.hitTest(mouseX, mouseY)) and not app.currCstmzSlider:
+                app.currGeoComponent = component  # Open geometric component customization
+                app.editingField = 'display'  # Set editing field
+                app.customInput = ''  # Reset custom input
                 return
+
     
 
 def onMouseDrag(app, mouseX, mouseY):
@@ -463,11 +470,11 @@ def onMouseDrag(app, mouseX, mouseY):
     app.mouseX = mouseX
     app.mouseY = mouseY
     
-    ###### 1. Handle Drag Selection ######
+    ####### 1. Handle Drag Selection ######
     if app.isDragSelecting:
         app.dragFrameEnd = (mouseX, mouseY)
     
-    ###### 2. Handle Node Connection Dragging ######
+    ####### 2. Handle Node Connection Dragging ######
     elif app.draggingNode:
         # Create temporary visual connection line
         app.tempConnection = (app.draggingNode, mouseX, mouseY)
@@ -476,7 +483,7 @@ def onMouseDrag(app, mouseX, mouseY):
             for node in component.inputNodes:
                 node.isHovering = node.hitTest(mouseX, mouseY)
     
-    ###### 3. Handle Component Dragging ######
+    ####### 3. Handle Component Dragging ######
     elif app.currDraggingComponent:
         comp = app.currDraggingComponent
         
@@ -515,8 +522,8 @@ def onMouseDrag(app, mouseX, mouseY):
             # Update reference point for next drag
             app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
 
-    # 处理 PinnedSlider 的滑块拖动
-    if hasattr(app, 'currDraggingPinnedSlider'):
+    ####### 4. Handle Pinned Slider Dragging ######
+    if app.currDraggingPinnedSlider:
         slider = app.currDraggingPinnedSlider['slider']
         x = app.currDraggingPinnedSlider['x']
         
@@ -525,7 +532,9 @@ def onMouseDrag(app, mouseX, mouseY):
         newValue = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
         newValue = max(slider.min_val, min(slider.max_val, newValue))
         
+        # 更新 PinnedSlider 和原始 Slider 的值
         slider.updateValue(newValue)
+
 
 def adjustPosition(comp, mouseX, mouseY):
     newX = mouseX - comp.width / 2
@@ -587,8 +596,13 @@ def onMouseRelease(app, mouseX, mouseY):
         app.dragFrameStart = None
         app.dragFrameEnd = None
     
+    if app.currDraggingPinnedSlider:
+        app.currDraggingPinnedSlider = None
+
+    
     ###### 4. Reset Group Dragging Reference ######
     app.dragGroupOldMouseX, app.dragGroupOldMouseY = None, None
+
 
 
 def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
@@ -604,95 +618,129 @@ def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
 
 
 def onKeyPress(app, key):
+    ####### 1. Handle Custom Slider Interaction ######
     if app.currCstmzSlider:
         if key == 'tab':
+            # Switch between editable fields in the slider
             fields = list(app.currCstmzSlider.fields.keys())
             if app.editingField is None:
-                app.editingField = fields[0]
-                app.customInput = ''
+                app.editingField = fields[0]  # Start editing the first field
+                app.customInput = ''  # Clear input
             else:
                 idx = (fields.index(app.editingField) + 1) % len(fields)
-                app.editingField = fields[idx]
-                app.customInput = ''
+                app.editingField = fields[idx]  # Switch to the next field
+                app.customInput = ''  # Clear input
         elif key == 'enter':
-            # Save changes and exit
+            # Save changes and exit editing mode
             if app.editingField == 'nickname':
-                app.currCstmzSlider.nickname = app.customInput
+                app.currCstmzSlider.nickname = app.customInput  # Update nickname
+            
+            elif app.editingField == 'value':
+                try:
+                    new_value = float(app.customInput)
+                    # 确保输入值在有效范围内
+                    if app.currCstmzSlider.min_val <= new_value <= app.currCstmzSlider.max_val:
+                        app.currCstmzSlider.updateValue(new_value)
+                except ValueError:
+                    pass
+            
             elif app.editingField == 'min':
                 try:
                     new_min = int(app.customInput)
-                    # 检查新的最小值是否小于最大值
-                    if new_min < app.currCstmzSlider.max_val:
+                    if new_min < app.currCstmzSlider.max_val:  # Validate minimum value
                         app.currCstmzSlider.min_val = new_min
+                    app.currCstmzSlider.updateValue((app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2)
                 except ValueError:
                     pass
             elif app.editingField == 'max':
                 try:
                     new_max = int(app.customInput)
-                    # 检查新的最大值是否大于最小值
-                    if new_max > app.currCstmzSlider.min_val:
+                    if new_max > app.currCstmzSlider.min_val:  # Validate maximum value
                         app.currCstmzSlider.max_val = new_max
+                    app.currCstmzSlider.updateValue((app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2)
                 except ValueError:
                     pass
-            # pin在画布底下
+            elif app.editingField == 'precision':
+                # 切换精度
+                app.currCstmzSlider.current_precision_index = (
+                    app.currCstmzSlider.current_precision_index + 1
+                ) % len(app.currCstmzSlider.precision_options)
+                
             elif app.editingField == 'pin':
+                # Pin or unpin the slider
                 app.currCstmzSlider.isPinned = not app.currCstmzSlider.isPinned
                 if app.currCstmzSlider.isPinned:
-                    # 创建 PinnedSlider 并添加到 pinnedSliders
+                    # Create and add a pinned slider
                     pinned_twin = PinnedSlider(app.currCstmzSlider, app)
                     app.pinnedSliders.append(pinned_twin)
                 else:
-                    # 移除对应的 PinnedSlider
-                    app.pinnedSliders = [slider for slider in app.pinnedSliders 
+                    # Remove the corresponding pinned slider
+                    app.pinnedSliders = [slider for slider in app.pinnedSliders
                                         if slider.original_slider != app.currCstmzSlider]
-
+                
+            # 只更新字段，不重置值
             app.currCstmzSlider.updateFields()
-            app.currCstmzSlider.outputNodes[0].value = (app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2
-
+            # Reset input and exit editing
             app.customInput = ''
+
+            if app.currCstmzSlider.isPinned:
+                for pinnedSlider in app.pinnedSliders:
+                    if pinnedSlider.original_slider == app.currCstmzSlider:
+                        pinnedSlider.updateFields()
+
+
+
         elif key == 'escape':
-            # Discard changes and exit
+            # Exit editing without saving changes
             app.currCstmzSlider = None
             app.editingField = None
             app.customInput = ''
         elif key == 'backspace':
+            # Remove the last character from the input
             app.customInput = app.customInput[:-1]
         elif len(key) == 1:  # Single character input
             app.customInput += key
 
+    ####### 2. Handle Geometric Component Interaction ######
     elif hasattr(app, 'currGeoComponent') and app.currGeoComponent:
         if key == 'tab':
-            # 切换显示状态
+            # Toggle the display state of the component
             app.currGeoComponent.isDisplay = not app.currGeoComponent.isDisplay
-            app.editingField = None
+            app.editingField = None  # Reset editing field
         elif key == 'escape':
-            # 取消操作
+            # Cancel and exit editing mode
             app.currGeoComponent = None
-            app.editingField = None
+            app.editingField = 'nickname'
 
-    else:        
+    ####### 3. Handle General Keypress Actions ######
+    else:
         if key == 's':
+            # Create a new slider component
             newSlider = Slider(app)
             app.components.append(newSlider)
         elif key == 'c':
+            # Create a new circle component
             newCircleCreator = CircleCreator(app)
             newCircleCreator.updateNodePositions()
-            app.components.append(newCircleCreator)     
+            app.components.append(newCircleCreator)
         elif key == 'r':
+            # Create a new rectangle component
             newRectCreator = RectCreator(app)
             newRectCreator.updateNodePositions()
             app.components.append(newRectCreator)
         elif key == 'p':
+            # Create a new point component
             newPoint = Point(app)
             newPoint.updateNodePositions()
             app.components.append(newPoint)
 
         elif key in ['backspace', 'delete']:
+            # Delete selected components
             if app.selectedCompo:
                 for compo in app.selectedCompo:
                     compo.deleteComponent(app)
-                # Clear selection
-                app.selectedCompo = []
+                app.selectedCompo = []  # Clear the selection
+
         
 def main():
     runApp()
