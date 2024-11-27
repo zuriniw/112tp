@@ -7,6 +7,7 @@ class Point(TypicleComponent):
         outputs = ['point']
         name = 'point\n๏'
         self.isGeo = True
+        self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
@@ -39,7 +40,7 @@ class Point(TypicleComponent):
         if point_val and isinstance(point_val, list):
             _, pos = point_val  # 解包几何数据格式 ['point', (x,y)]
             x, y = pos           # 解包坐标元组
-            drawCircle(x, y, 4, fill='white', border='blue', borderWidth=2)
+            drawCircle(x, y, 4, fill='white', border='blue', borderWidth=2, visible=self.isDisplay)
 
 
 
@@ -86,6 +87,7 @@ class VectorPreview(TypicleComponent):
         outputs = ['']  # Empty string for no output
         name = 'Vector\nPreview\n→'
         self.isGeo = True
+        self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
@@ -108,6 +110,6 @@ class VectorPreview(TypicleComponent):
             dx, dy = vector_val
             x0, y0 = anchor_val
             x1, y1 = x0 + dx, y0 + dy
-            drawLine(x0, y0, x1, y1, fill='pink', arrowEnd=True)
+            drawLine(x0, y0, x1, y1, fill='pink', arrowEnd=True, visible=self.isDisplay)
 
 

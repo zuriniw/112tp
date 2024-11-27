@@ -7,6 +7,7 @@ class CircleCreator(TypicleComponent):
         outputs = ['circle']
         name = 'Draw\nCirc\nO'
         self.isGeo = True
+        self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
         
         # 设置默认值
@@ -33,7 +34,7 @@ class CircleCreator(TypicleComponent):
             x, y = self.inputNodes[0].value[1]
             radius = abs(self.inputNodes[1].value)
             if radius != 0:
-                drawCircle(x, y, radius, fill=None, border='blue')
+                drawCircle(x, y, radius, fill=None, border='blue', visible=self.isDisplay)
 
 class RectCreator(TypicleComponent):
     def __init__(self, app):
@@ -41,6 +42,7 @@ class RectCreator(TypicleComponent):
         outputs = ['rect']
         name = 'Draw\nRect\n⬚'
         self.isGeo = True
+        self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
         
         # 设置默认值

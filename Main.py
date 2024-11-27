@@ -186,6 +186,62 @@ def drawDraggingFrame(app):
                     abs(x2 - x1), abs(y2 - y1),
                     fill='lightgrey', border = 'red', opacity=20, dashes = True)
 
+def drawCstmzingSliderPopUp(app):
+    currSlider = app.currCstmzSlider
+    if currSlider in app.components:
+        fields = {
+            'nickname': currSlider.nickname,
+            'min': str(currSlider.min_val),
+            'max': str(currSlider.max_val)
+        }
+
+        # Draw popup background
+        drawRect(currSlider.x, currSlider.y - 80, 120, 20*len(fields),
+                fill='white', border='black')
+        
+        # Draw fields
+        y_offset = -70
+        drawLine(currSlider.x+1.5, currSlider.y - 20,currSlider.x+1.5, currSlider.y, dashes = (3,3))
+        for field, value in fields.items():
+            # Highlight editing field
+            if field == app.editingField:
+                drawRect(currSlider.x, currSlider.y + y_offset - 10, 
+                        120, 20, fill='lightBlue', opacity=30)
+                if app.customInput != '':
+                    text = f"{field}: {app.customInput}_"  # Show cursor
+                else:
+                    text = f"{field}: {value}_"
+            else:
+                text = f"{field}: {value}"
+            drawLabel(text, currSlider.x + 60, currSlider.y + y_offset)
+            y_offset += 20
+    
+def drawGeoComponentPopUp(app):
+    # 处理几何组件的弹出窗口
+    if app.currGeoComponent in app.components and hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+        
+        currComponent = app.currGeoComponent
+        fields = {
+            'display': 'On' if currComponent.isDisplay else 'Off'
+        }
+        
+        # Draw popup background
+        drawRect(currComponent.x, currComponent.y - 40, 120, 20*len(fields),
+                 fill='white', border='black')
+        
+        # Draw fields
+        y_offset = -30
+        drawLine(currComponent.x+1, currComponent.y - 30,currComponent.x+1, currComponent.y, dashes = (3,3))
+        for field, value in fields.items():
+            # Highlight editing field
+            if field == app.editingField:
+                drawRect(currComponent.x, currComponent.y + y_offset - 10,
+                         120, 20, fill='lightBlue', opacity=30)
+            
+            text = f"{field}: {value}"
+            drawLabel(text, currComponent.x + 60, currComponent.y + y_offset)
+            y_offset += 20
+
 def redrawAll(app):
     drawPlayground(app)
     drawToolbar(app)
@@ -232,6 +288,9 @@ def redrawAll(app):
     
     if app.currCstmzSlider:
         drawCstmzingSliderPopUp(app)
+    
+    if hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+        drawGeoComponentPopUp(app)
 
 
 
@@ -339,6 +398,7 @@ def onMousePress(app, mouseX, mouseY, button):
         if not hitComponent:
             app.currDraggingComponent = None
             app.currCstmzSlider = None
+            app.currGeoComponent = None
             
         if app.currDraggingComponent is None:
             # Clear selection
@@ -356,39 +416,16 @@ def onMousePress(app, mouseX, mouseY, button):
     # Check for right-click on slider
     if button == 2:
         for component in app.components:
-            if isinstance(component, Slider) and component.hitTest(mouseX, mouseY):
+            if isinstance(component, Slider) and component.hitTest(mouseX, mouseY) and (not app.currGeoComponent):
                 app.currCstmzSlider = component
                 return
-
-def drawCstmzingSliderPopUp(app):
-    currSlider = app.currCstmzSlider
-    
-    fields = {
-        'nickname': currSlider.nickname,
-        'min': str(currSlider.min_val),
-        'max': str(currSlider.max_val)
-    }
-
-    # Draw popup background
-    drawRect(currSlider.x, currSlider.y - 80, 120, 20*len(fields),
-            fill='white', border='black')
-    
-    # Draw fields
-    y_offset = -70
-    for field, value in fields.items():
-        # Highlight editing field
-        if field == app.editingField:
-            drawRect(currSlider.x, currSlider.y + y_offset - 10, 
-                    120, 20, fill='lightBlue', opacity=30)
-            if app.customInput != '':
-                text = f"{field}: {app.customInput}_"  # Show cursor
-            else:
-                text = f"{field}: {value}_"
-        else:
-            text = f"{field}: {value}"
-        drawLabel(text, currSlider.x + 60, currSlider.y + y_offset)
-        y_offset += 20
-
+            elif (isinstance(component, TypicleComponent) and 
+            component.isGeo and 
+            component.hitTest(mouseX, mouseY)) and (not app.currCstmzSlider):
+                app.currGeoComponent = component
+                app.editingField = 'display'
+                app.customInput = ''
+                return
 
 def onMouseDrag(app, mouseX, mouseY):
     # Update current mouse position
@@ -569,6 +606,16 @@ def onKeyPress(app, key):
             app.customInput = app.customInput[:-1]
         elif len(key) == 1:  # Single character input
             app.customInput += key
+
+    if hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+        if key == 'tab':
+            # 切换显示状态
+            app.currGeoComponent.isDisplay = not app.currGeoComponent.isDisplay
+            app.editingField = None
+        elif key == 'escape':
+            # 取消操作
+            app.currGeoComponent = None
+            app.editingField = None
 
     else:        
         if key == 's':

@@ -78,15 +78,19 @@ class TypicleComponent(Component):
             y_input += app.textHeight + app.paddingY
 
         ####### Draw Center Label #######
+        centerColor = 'darkGrey' if self.isGeo and not self.isDisplay else 'black'
+
         labelLines = self.name.split('\n')
         labelHeight = len(labelLines) * (app.textHeight + app.paddingY / 2) - app.paddingY / 2
         labelStartX = self.x + app.borderX + self.inputWidth + app.paddingX
-        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY, border='black')
+        drawRect(labelStartX, self.y + app.borderY/2, app.centerLabelWidth, self.height - app.borderY, border='black', fill = centerColor)
         labelX = labelStartX + app.centerLabelWidth / 2
         labelY = self.y + self.height / 2 - labelHeight / 2 + app.borderY/2
         for line in labelLines:
             drawLabel(line, labelX, labelY, fill='white', font = 'symbols')
             labelY += app.textHeight + app.paddingY / 8
+
+
 
         ###### Draw Output Label ######
         y_output = self.y + (self.height - self.outputHeight) / 2 + app.borderY/2
