@@ -249,11 +249,10 @@ def drawPinnedSliders(app):
     for slider in app.pinnedSliders:
         i = app.pinnedSliders.index(slider)
         x = startX + 100 * i
-        y = app.height - app.pinnedSliderHeight + app.borderY
-        drawLabel(f'slider:[ {slider.nickname} ]', x, y)
+        y = app.height - app.pinnedSliderHeight + app.borderY*2
+        slider.drawTwinUI(x,y)
 
-        #slider.drawUI()
-
+        
 
 def redrawAll(app):
     drawPlayground(app)
@@ -329,24 +328,7 @@ def onMouseMove(app, mouseX, mouseY):
 def onMousePress(app, mouseX, mouseY, button):
     if button == 0:
         currentTime = time.time()
-        
-        ###### 1. Node and Connection Interaction ######
-        # Check if clicking on a node
-        for component in app.components:
-            for node in component.inputNodes + component.outputNodes:
-                if node.hitTest(mouseX, mouseY):
-                    app.draggingNode = node
-                    return
-        
-        # Check if double-clicking on a connection
-        for conn in app.connections:
-            if conn.hitTest(mouseX, mouseY):
-                if currentTime - app.lastClickTime < 0.3:  # Double click
-                    conn.deleteConnection(app)
-                    return
-                app.lastClickTime = currentTime
-                return
-        
+
         ###### 2. Toolbar Interaction ######
         # Check toolbar buttons
         for button in app.currButtomList:
@@ -373,6 +355,23 @@ def onMousePress(app, mouseX, mouseY, button):
                 var_name = 'is' + toggle.name.replace(' ', '')
                 setattr(app, var_name, toggle.isOn)
                 app.toggleStates[toggle.name] = toggle.isOn
+                return
+            
+        ###### 1. Node and Connection Interaction ######
+        # Check if clicking on a node
+        for component in app.components:
+            for node in component.inputNodes + component.outputNodes:
+                if node.hitTest(mouseX, mouseY):
+                    app.draggingNode = node
+                    return
+        
+        # Check if double-clicking on a connection
+        for conn in app.connections:
+            if conn.hitTest(mouseX, mouseY):
+                if currentTime - app.lastClickTime < 0.3:  # Double click
+                    conn.deleteConnection(app)
+                    return
+                app.lastClickTime = currentTime
                 return
         
         ###### 4. Component Interaction ######
@@ -426,11 +425,26 @@ def onMousePress(app, mouseX, mouseY, button):
             app.isDragSelecting = True
             app.dragFrameStart = (mouseX, mouseY)
             app.dragFrameEnd = (mouseX, mouseY)
+        
+        ####### pinnned sliders ######
+        if not app.isCompDisplay:
+            for slider in app.pinnedSliders:
+                i = app.pinnedSliders.index(slider)
+                x = app.borderX + 100 * i
+                y = app.height - app.pinnedSliderHeight + app.borderY*2
+                
+                if slider.hitTestHandle(mouseX, mouseY, x, y):
+                    app.currDraggingPinnedSlider = {
+                        'slider': slider,
+                        'x': x,
+                        'y': y
+                    }
+                    return
 
-        ###### 6. CstmzingSlider pop-up window interaction ######
+    ###### 6. CstmzingSlider pop-up window interaction ######
     
     # Check for right-click on slider
-    if button == 2:
+    elif button == 2:
         for component in app.components:
             if isinstance(component, Slider) and component.hitTest(mouseX, mouseY) and (not app.currGeoComponent):
                 app.currCstmzSlider = component
@@ -442,6 +456,7 @@ def onMousePress(app, mouseX, mouseY, button):
                 app.editingField = 'display'
                 app.customInput = ''
                 return
+    
 
 def onMouseDrag(app, mouseX, mouseY):
     # Update current mouse position
@@ -500,6 +515,17 @@ def onMouseDrag(app, mouseX, mouseY):
             # Update reference point for next drag
             app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
 
+    # 处理 PinnedSlider 的滑块拖动
+    if hasattr(app, 'currDraggingPinnedSlider'):
+        slider = app.currDraggingPinnedSlider['slider']
+        x = app.currDraggingPinnedSlider['x']
+        
+        # 计算新的值
+        normalized_x = (mouseX - x) / slider.width
+        newValue = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
+        newValue = max(slider.min_val, min(slider.max_val, newValue))
+        
+        slider.updateValue(newValue)
 
 def adjustPosition(comp, mouseX, mouseY):
     newX = mouseX - comp.width / 2
@@ -612,16 +638,17 @@ def onKeyPress(app, key):
             elif app.editingField == 'pin':
                 app.currCstmzSlider.isPinned = not app.currCstmzSlider.isPinned
                 if app.currCstmzSlider.isPinned:
-                    app.pinnedSliders.append(app.currCstmzSlider)
+                    # 创建 PinnedSlider 并添加到 pinnedSliders
+                    pinned_twin = PinnedSlider(app.currCstmzSlider, app)
+                    app.pinnedSliders.append(pinned_twin)
                 else:
-                    if app.currCstmzSlider in app.pinnedSliders:
-                        app.pinnedSliders.remove(app.currCstmzSlider)
+                    # 移除对应的 PinnedSlider
+                    app.pinnedSliders = [slider for slider in app.pinnedSliders 
+                                        if slider.original_slider != app.currCstmzSlider]
 
             app.currCstmzSlider.updateFields()
             app.currCstmzSlider.outputNodes[0].value = (app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2
 
-            #app.currCstmzSlider = None
-            #app.editingField = None
             app.customInput = ''
         elif key == 'escape':
             # Discard changes and exit
