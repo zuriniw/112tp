@@ -143,20 +143,44 @@ class PinnedSlider(Slider):
         self.current_precision_index = self.original_slider.current_precision_index
     
     def drawTwinUI(self, x, y):
-        # 绘制背景
-        drawRect(x, y, self.width, self.height, fill='white', border='black')
-        # 绘制滑道背景
-        drawRect(x, y + self.height/2 - 2, self.width, 4, fill='lightGrey')       
-        # 绘制滑块
-        handleX = x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * (self.width - self.handleWidth)
-        drawRect(handleX, y, self.handleWidth, self.height, fill='black', border='darkGrey')       
-        # 根据原始 slider 的精度设置显示值
-        drawLabel(f'{self.getValue()}', handleX, y - 10)
-        # 绘制昵称
+        # 绘制主背景（透明）
+        drawRect(x, y, self.width, self.height, 
+                fill=None, border=None)
+        
+        # 绘制中间轨道
+        trackY = y + self.height/2
+        drawLine(x, trackY, x + self.width, trackY,
+                fill='black', lineWidth=2)
+        
+        # 绘制刻度
+        numTicks = 10  # 刻度数量
+        tickHeight = 5  # 刻度高度
+        for i in range(numTicks + 1):
+            tickX = x + (i / numTicks) * self.width
+            # 绘制刻度线
+            drawLine(tickX, trackY - tickHeight/2, 
+                    tickX, trackY + tickHeight/2,
+                    fill='black', lineWidth=1)
+        
+        # 计算滑块位置
+        handleX = x + ((self.getValue() - self.min_val) / 
+                    (self.max_val - self.min_val)) * self.width
+        
+        # 绘制滑块（圆形）
+        handleRadius = 7
+        drawCircle(handleX, trackY, handleRadius,
+                fill='white', border='black')
+        
+        # 绘制当前值
+        drawLabel(f'{self.getValue()}', handleX, y - 5,
+                size=12)
+        
+        # 绘制昵称（如果存在）
         if self.original_slider.nickname:
-            drawLabel(f'[ {self.original_slider.nickname} ]', x + self.width/2, y + self.height + 8, size=12)
-
-    # 
+            drawLabel(f'[ {self.original_slider.nickname} ]',
+                    x + self.width/2, y + self.height + 12,
+                    size=12)
+        # 
     def updateValue(self, value):
         # 先处理精度
         precision = self.precision_options[self.current_precision_index]
@@ -173,11 +197,17 @@ class PinnedSlider(Slider):
             connection.end_node.receiveValue(processed_value)
 
     def hitTestHandle(self, mouseX, mouseY, x, y):
-        # 计算手柄的中心位置，考虑手柄宽度
-        handleX = x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * (self.width - self.handleWidth)      
-        # 检查鼠标是否在手柄的范围内
-        return (handleX <= mouseX <= handleX + self.handleWidth) and (y <= mouseY <= y + self.height)
-    
+       # 计算滑块中心位置
+        trackY = y + self.height/2
+        handleX = x + ((self.getValue() - self.min_val) / 
+                    (self.max_val - self.min_val)) * self.width
+        
+        # 计算鼠标到滑块中心的距离
+        handleRadius = 7  # 与绘制时相同的半径
+        distance = ((mouseX - handleX)**2 + (mouseY - trackY)**2)**0.5
+        
+        # 如果距离小于滑块半径，则判定为点击到滑块
+        return distance <= handleRadius
 
 def processValueWithPrecision(value, precision_value):
     """处理数值精度

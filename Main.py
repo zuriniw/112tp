@@ -247,7 +247,7 @@ def drawGeoComponentPopUp(app):
 
 def drawPinnedSliders(app):
     drawLine(0, app.height-app.pinnedSliderHeight, app.width, app.height-app.pinnedSliderHeight)
-    startX = app.borderX
+    startX = app.borderX * 3 
     for slider in app.pinnedSliders:
         i = app.pinnedSliders.index(slider)
         x = startX + 140 * i
@@ -288,8 +288,18 @@ def redrawAll(app):
             preview.updateNodePositions()
             # Draw the preview
             preview.drawUI()
+
+        if app.isDragSelecting:
+            drawDraggingFrame(app)
+    
+        if app.currCstmzSlider:
+            drawCstmzingSliderPopUp(app)
+        
+
+
     deltaPinnedSlider = 0 if app.isCompDisplay else app.pinnedSliderHeight
     drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY - deltaPinnedSlider, border = 'black', fill = 'white')
+    
     for toggle in app.toggles:
         toggle.drawUI()
     
@@ -297,13 +307,7 @@ def redrawAll(app):
         if isinstance(component, TypicleComponent) and component.isGeo:
             component.draw()
     
-    if app.isDragSelecting:
-        drawDraggingFrame(app)
-    
-    if app.currCstmzSlider:
-        drawCstmzingSliderPopUp(app)
-    
-    if hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+    if app.currGeoComponent:
         drawGeoComponentPopUp(app)
     
     if not app.isCompDisplay:
@@ -436,7 +440,7 @@ def onMousePress(app, mouseX, mouseY, button):
             # Check if a pinned slider handle is clicked
             for slider in app.pinnedSliders:
                 i = app.pinnedSliders.index(slider)  # Get slider index
-                x = app.borderX + 140 * i  # Calculate slider position
+                x = 3 * app.borderX + 140 * i  # Calculate slider position
                 y = app.height - app.pinnedSliderHeight + app.borderY * 2
                 
                 if slider.hitTestHandle(mouseX, mouseY, x, y):
