@@ -51,11 +51,9 @@ class Slider(Component):
 
 
 
-
-
 class Slider1D(Slider):
     """可交互的一维滑块"""
-    def __init__(self, app, name='Slider<--->', min_val=-200, max_val=200):
+    def __init__(self, app, name='Slider\n1D\n<-->', min_val=-200, max_val=200):
         super().__init__(app, name)
         self.min_val = min_val
         self.max_val = max_val
@@ -208,7 +206,7 @@ class PinnedSlider1D(Slider):
                      x + self.width/2, y + self.height + 12, size=12)
 
 class Slider2D(Slider):
-    def __init__(self, app, name='2D Slider', min_val=-100, max_val=100):
+    def __init__(self, app, name='Slider\n2D\n<-|->', min_val=-100, max_val=100):
         # Call parent class constructor with correct parameters
         super().__init__(app, name)
         self.min_val = min_val
@@ -244,6 +242,7 @@ class Slider2D(Slider):
             'precision': f'{self.precision_options[self.current_precision_index]} decimal',
             'pin': self.isPinned
         }
+        
 
     def getValues(self):
         precision = self.precision_options[self.current_precision_index]
