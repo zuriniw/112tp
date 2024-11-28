@@ -679,11 +679,29 @@ def onKeyPress(app, key):
                 try:
                     new_value = float(app.customInput)
                     # 确保输入值在有效范围内
-                    if app.currCstmzSlider.min_val <= new_value <= app.currCstmzSlider.max_val:
-                        app.currCstmzSlider.updateValue(new_value)
+                    l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
+                    new_value = max(min(new_value, r), l)
+                    app.currCstmzSlider.updateValue(new_value)
                 except ValueError:
                     pass
-            
+            elif app.editingField == 'x':
+                try:
+                    new_x = float(app.customInput)
+                    # 确保输入值在有效范围内
+                    l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
+                    new_x = max(min(new_x, r), l)
+                    app.currCstmzSlider.updateValue(new_x, app.currCstmzSlider.outputNodes[1].value)
+                except ValueError:
+                    pass
+            elif app.editingField == 'y':
+                try:
+                    new_y = float(app.customInput)
+                    # 确保输入值在有效范围内
+                    l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
+                    new_y = max(min(new_y, r), l)
+                    app.currCstmzSlider.updateValue(app.currCstmzSlider.outputNodes[0].value, new_y)
+                except ValueError:
+                    pass
             elif app.editingField == 'min':
                 try:
                     new_min = int(app.customInput)
