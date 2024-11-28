@@ -260,13 +260,19 @@ def drawGeoComponentPopUp(app):
             y_offset += 20
 
 def drawPinnedSliders(app):
-    #drawLine(0, app.height-app.pinnedSliderHeight, app.width, app.height-app.pinnedSliderHeight)
-    startX = app.borderX * 3 
+    startX = app.borderX * 3
     for slider in app.pinnedSliders:
         i = app.pinnedSliders.index(slider)
-        x = startX + 140 * i
-        y = (app.height - app.pinnedSliderHeight + app.borderY*2) if isinstance(slider,PinnedSlider1D) else (app.height - app.pinnedSliderHeight - app.borderY*4)
-        slider.drawTwinUI(x,y)
+        x = startX + 180 * i
+        
+        # 计算基准y位置，确保昵称对齐
+        baseY = app.height - app.pinnedSliderHeight + app.borderY*2
+        if isinstance(slider, PinnedSlider2D):
+            y = baseY - app.borderY*7 - 4  # 调整2D滑块的整体位置
+        else:
+            y = baseY
+            
+        slider.drawTwinUI(x, y)
 
         
 
@@ -451,8 +457,13 @@ def onMousePress(app, mouseX, mouseY, button):
             # Check if a pinned slider handle is clicked
             for slider in app.pinnedSliders:
                 i = app.pinnedSliders.index(slider)  # Get slider index
-                x = 3 * app.borderX + 140 * i  # Calculate slider position
-                y = (app.height - app.pinnedSliderHeight + app.borderY*2) if isinstance(slider,PinnedSlider1D) else (app.height - app.pinnedSliderHeight - app.borderY*4)
+                x = 3 * app.borderX + 180 * i  # Calculate slider position
+                
+                baseY = app.height - app.pinnedSliderHeight + app.borderY*2
+                if isinstance(slider, PinnedSlider2D):
+                    y = baseY - app.borderY*7 - 4  # 调整2D滑块的整体位置
+                else:
+                    y = baseY
                 
                 if slider.hitTestHandle(mouseX, mouseY, x, y):
                     app.currDraggingPinnedSlider = {  # Start dragging the pinned slider
