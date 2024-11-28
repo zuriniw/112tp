@@ -452,7 +452,7 @@ def onMousePress(app, mouseX, mouseY, button):
             for slider in app.pinnedSliders:
                 i = app.pinnedSliders.index(slider)  # Get slider index
                 x = 3 * app.borderX + 140 * i  # Calculate slider position
-                y = app.height - app.pinnedSliderHeight + app.borderY * 2
+                y = (app.height - app.pinnedSliderHeight + app.borderY*2) if isinstance(slider,PinnedSlider1D) else (app.height - app.pinnedSliderHeight - app.borderY*4)
                 
                 if slider.hitTestHandle(mouseX, mouseY, x, y):
                     app.currDraggingPinnedSlider = {  # Start dragging the pinned slider
@@ -542,7 +542,7 @@ def onMouseDrag(app, mouseX, mouseY):
         if isinstance(slider, PinnedSlider2D):
             # 2D slider处理
             normalized_x = (mouseX - x) / slider.width
-            normalized_y = (mouseY - y) / slider.height
+            normalized_y = 1 - (mouseY - y) / slider.height  # 反转y轴
             
             newX = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
             newY = slider.min_val + normalized_y * (slider.max_val - slider.min_val)

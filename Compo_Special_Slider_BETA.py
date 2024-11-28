@@ -356,9 +356,7 @@ class Slider2D(Slider):
                      size=12)
         
         # 绘制背景网格
-        drawRect(self.x, self.y, self.width, self.height, 
-                fill= None if not self.isSelected else 'lightGrey',
-                border='black')
+        drawRect(self.x, self.y, self.width, self.height, fill= None, border='black')
         
 
 
@@ -431,7 +429,7 @@ class PinnedSlider2D(Slider2D):
         x_val, y_val = self.getValues()
         handleX = x + ((x_val - self.min_val) / 
                     (self.max_val - self.min_val)) * self.width
-        handleY = y + (1 - (y_val - self.min_val) / 
+        handleY = y + (1-(y_val - self.min_val) / 
                     (self.max_val - self.min_val)) * self.height
         
         # 计算鼠标到手柄中心的距离
@@ -453,23 +451,25 @@ class PinnedSlider2D(Slider2D):
                     fill='lightGray', lineWidth=0.5)
             drawLine(x, lineY, x + self.width, lineY,
                     fill='lightGray', lineWidth=0.5)
-
         
-        # 绘制圆形手柄
+        # 绘制手柄和十字线
         x_val, y_val = self.getValues()
         handleX = x + ((x_val - self.min_val) / 
-                    (self.max_val - self.min_val)) * self.width
-        handleY = y + (1 - (y_val - self.min_val) / 
-                    (self.max_val - self.min_val)) * self.height
+                   (self.max_val - self.min_val)) * self.width
+        handleY = y + (1-(y_val - self.min_val) / 
+               (self.max_val - self.min_val)) * self.height
+        
+        # 绘制手柄位置的十字线
         drawLine(handleX, y, handleX, y + self.height,
-                fill='black', lineWidth=1, opacity = 30)
+                fill='black', lineWidth=1, opacity=30)
         drawLine(x, handleY, x + self.width, handleY,
-                fill='black', lineWidth=1, opacity = 30)
-
+                fill='black', lineWidth=1, opacity=30)
+        
         drawCircle(handleX, handleY, self.handleSize/2,
                 fill='white', border='black')
         
-        
+        #label
+        drawLabel(f'({x_val}, {y_val})', handleX, y - 10)
         
         # 绘制昵称
         if self.original_slider.nickname:
