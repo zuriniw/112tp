@@ -44,7 +44,7 @@ class Panel(Component):
                       self.y + self.height/2, 
                       size=16)
         else:
-            drawLabel('No Input', 
+            drawLabel('Feed food 4 me!', 
                       self.x + self.width/2, 
                       self.y + self.height/2, 
                       fill='grey')

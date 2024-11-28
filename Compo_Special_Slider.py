@@ -1,11 +1,3 @@
-'''
-[special components] that have unique interaction and GUI, 
-not belong to [typical components]
-include:
-    - Slider
-    - 
-'''
-
 from Components import Component
 from cmu_graphics import *
 from Node import *
