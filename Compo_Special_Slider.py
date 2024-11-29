@@ -97,6 +97,10 @@ class Slider1D(Slider):
             for pinned_slider in self.app.pinnedSliders:
                 if pinned_slider.original_slider == self:
                     pinned_slider.syncWithOriginal()
+
+    def calculate(self):
+        # 返回当前slider的value
+        return self.getValue()
     
     def hitTestHandle(self, mouseX, mouseY):
         """矩形滑块的碰撞检测"""
@@ -171,6 +175,9 @@ class PinnedSlider1D(Slider):
         new_value = max(self.min_val, min(self.max_val, current_value))
         if current_value != new_value:
             self.updateValue(new_value)
+    def calculate(self):
+        # 返回当前slider的value
+        return self.getValue()
     def hitTestHandle(self, mouseX, mouseY, x, y):
         """圆形滑块的碰撞检测"""
         trackY = y + self.height/2
@@ -248,6 +255,9 @@ class Slider2D(Slider):
         precision = self.precision_options[self.current_precision_index]
         return (processValueWithPrecision(self.outputNodes[0].value, precision),
                 processValueWithPrecision(self.outputNodes[1].value, precision))
+    def calculate(self):
+        # 返回当前slider的value
+        return self.getValue()
 
     def updateValue(self, x_val, y_val):
         precision = self.precision_options[self.current_precision_index]
@@ -423,6 +433,9 @@ class PinnedSlider2D(Slider2D):
             connection.end_node.receiveValue(processed_x)
         for connection in self.original_slider.outputNodes[1].connections:
             connection.end_node.receiveValue(processed_y)
+    def calculate(self):
+        # 返回当前slider的value
+        return self.getValue()
 
     def hitTestHandle(self, mouseX, mouseY, x, y):
         x_val, y_val = self.getValues()

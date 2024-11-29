@@ -125,7 +125,7 @@ class Series(TypicleComponent):
             
         # Initialize output node with calculated value
         initial_output = self.calculate()
-        self.outputNodes[0].value = initial_output[0]
+        self.outputNodes[0].value = initial_output
         self.hasAllInputs = True
         
     def calculate(self):
@@ -133,26 +133,8 @@ class Series(TypicleComponent):
         step = self.inputNodes[1].value
         count = self.inputNodes[2].value
         
-        # Handle invalid inputs
-        if first is None or step is None or count is None:
-            return [[]]
-            
-        # Ensure count is positive integer
-        try:
-            count = max(0, int(count))
-        except (ValueError, TypeError):
-            count = 0
-            
-        # Handle list inputs
-        if isinstance(first, list):
-            return [first]  # Return first list as is
-            
-        if isinstance(step, list):
-            return [step]   # Return step list as is
-            
-        # Generate arithmetic sequence for numeric inputs
         try:
             series = [first + i * step for i in range(count)]
-            return [series]
+            return [series]  # 返回包含列表的列表 [[0, 20, 40, 60, 80]]
         except (ValueError, TypeError):
-            return [[]]  # Return empty list if calculation fails
+            return [[]]

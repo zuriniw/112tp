@@ -11,7 +11,7 @@ class Point(TypicleComponent):
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'x': 0,
+            'x': [0,50],
             'y': 0
         }
         
@@ -19,9 +19,12 @@ class Point(TypicleComponent):
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
             
-        self.outputNodes[0].value = ['point', (app.x0, app.y0)]
+        # 使用calculate方法计算初始输出值    
+        self.outputNodes[0].value = self.calculate()
         self.hasAllInputs = True
         
+
+            
     def calculate(self):
         x_val = self.inputNodes[0].value
         y_val = self.inputNodes[1].value
@@ -31,40 +34,50 @@ class Point(TypicleComponent):
             world_x = x_val + self.app.x0
             world_y = self.app.y0 - y_val
             return [['point', (world_x, world_y)]]
-            
-        # Case 2: x is list, y is single value
+        
+        # Case 2: x is list[20,40,60], y is single value:0
         elif isinstance(x_val, list) and not isinstance(y_val, list):
-            points = [['point', (self.app.x0 + x, self.app.y0 - y_val)] for x in x_val[:2000]]
+            points = []
+            for x in x_val[:2000]:
+                world_x = x + self.app.x0
+                world_y = self.app.y0 - y_val
+                points.append(['point', (world_x, world_y)])
             return points
-            
+        
         # Case 3: x is single value, y is list
         elif not isinstance(x_val, list) and isinstance(y_val, list):
-            points = [['point', (self.app.x0 + x_val, self.app.y0 - y)] for y in y_val[:2000]]
+            points = []
+            for y in y_val[:2000]:
+                world_x = x_val + self.app.x0
+                world_y = self.app.y0 - y
+                points.append(['point', (world_x, world_y)])
             return points
-            
+        
         # Case 4: Both x and y are lists
         else:
             points = []
-            # Limit total points to 2000
-            for x in x_val[:50]:  # Limit x points
-                for y in y_val[:40]:  # Limit y points
-                    points.append(['point', (self.app.x0 + x, self.app.y0 - y)])
+            for x in x_val[:50]:
+                for y in y_val[:40]:
+                    world_x = x + self.app.x0
+                    world_y = self.app.y0 - y
+                    points.append(['point', (world_x, world_y)])
             return points
 
     def draw(self):
         if self.hasAllInputs:
-            points = self.calculate()  # 不需要[0]，因为calculate直接返回点列表
-            if isinstance(points, list):
-                for point in points:
-                    if point[0] == 'point':
-                        x, y = point[1]
-                        drawCircle(x, y, 4, fill='white', 
-                                border='blue',
-                                visible=self.isDisplay)
+            points = self.calculate()
+            for point in points:
+                if point[0] == 'point':
+                    x, y = point[1]
+                    drawCircle(x, y, 4, fill='white',
+                            border='blue',
+                            visible=self.isDisplay)
 
     def getDefaultValue(self, nodeName):
         # 确保返回正确的默认值
         return self.inputDefaultValue.get(nodeName)
+    
+    
 
 
 class Vector(TypicleComponent):

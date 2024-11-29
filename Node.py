@@ -36,11 +36,19 @@ class Node:
     
     
     ###### 2 // Manage Data Flow ######
+    def receiveValue(self, value):
+        self.value = value
+        self.component.updateValue(self.name, value)
+        
+        # 添加向下游组件传递更新的逻辑
+        if self.isOutput:
+            for connection in self.connections:
+                connection.end_node.receiveValue(self.value)
+
     def addConnection(self, connection):
         self.connections.append(connection)
-        # 是output（wire起点），传递值
         if self.isOutput and self.value is not None:
-            # 传给wire终点
+            # Don't reassign the calculate result directly
             connection.end_node.receiveValue(self.value)
 
     def removeConnection(self, connection):
@@ -52,7 +60,3 @@ class Node:
                 self.value = default
                 self.component.updateValue(self.name, default)
 
-    def receiveValue(self, value):
-        # 更新节点值并通知组件
-        self.value = value
-        self.component.updateValue(self.name, value)

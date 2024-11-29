@@ -10,32 +10,43 @@ class CircleCreator(TypicleComponent):
         self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
         
-        # 设置默认值
         self.inputDefaultValue = {
-            'point': ['point',(app.x0, app.y0)],
+            'point': [['point', (app.x0, app.y0)]],
             'radius': 40
         }
         
-        # 为输入节点设置默认值
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
             
-        # 初始化输出节点值
-        self.outputNodes[0].value = ['cir', (app.x0, app.y0), 40]
+        self.outputNodes[0].value = [['cir', (app.x0, app.y0), 40]]
         self.hasAllInputs = True
-    
+        
     def calculate(self):
-        point_val = self.inputNodes[0].value[1]
+        point_val = self.inputNodes[0].value
         radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
-        return [['cir', point_val, radius_val]]
-    
+        
+        circles = []
+        for point in point_val:
+            if isinstance(point, list) and point[0] == 'point':
+                circles.append(['cir', point[1], radius_val])
+        return circles
+
+        
     def draw(self):
         if self.hasAllInputs:
-            x, y = self.inputNodes[0].value[1]
-            radius = abs(self.inputNodes[1].value)
-            if int(radius) != 0:
-                drawCircle(x, y, radius, fill=None, border='blue', visible=self.isDisplay)
-
+            circles = self.calculate()
+            if not circles:
+                return
+            for circle in circles:
+                    x, y = circle[1]
+                    radius = circle[2]
+                    if int(radius) != 0:
+                        drawCircle(x, y, radius,
+                                 fill=None,
+                                 border='blue',
+                                 visible=self.isDisplay)
+    
+                        
 class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['point', 'width', 'height']
