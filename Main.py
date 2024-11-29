@@ -1,6 +1,7 @@
 from cmu_graphics import *
 from Components import *
 
+#from Compo_Special_Slider import *
 from Compo_Special_Slider import *
 
 from Compo_Special_Panel import *
@@ -81,13 +82,22 @@ def onAppStart(app):
     app.draggedComponentType = None
     app.componentTypes = {
         'Geometry': [CircleCreator, RectCreator],
-        'Math': [Slider, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
+        'Math': [Slider1D, Slider2D, Series, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
         'Manipulation': [Move],
         'Analyze': [Panel],
         'Vector': [Point, Vector, VectorPreview]
     }
     app.activeCategory = 'Geometry'
     loadToolbar(app)
+
+    # Dictionary mapping keys to component classes
+    app.component_map = {
+        's': Slider1D,
+        'c': CircleCreator,
+        'r': RectCreator,
+        'p': Point,
+        '2': Slider2D
+    }
     
     ## Toolbar Tabs
     app.tabs = []
@@ -116,6 +126,8 @@ def onAppStart(app):
     app.pinnedSliders = []
     app.pinnedSliderHeight = 100
     app.currDraggingPinnedSlider = None
+
+
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -248,13 +260,19 @@ def drawGeoComponentPopUp(app):
             y_offset += 20
 
 def drawPinnedSliders(app):
-    drawLine(0, app.height-app.pinnedSliderHeight, app.width, app.height-app.pinnedSliderHeight)
-    startX = app.borderX * 3 
+    startX = app.borderX * 3
     for slider in app.pinnedSliders:
         i = app.pinnedSliders.index(slider)
-        x = startX + 140 * i
-        y = app.height - app.pinnedSliderHeight + app.borderY*2
-        slider.drawTwinUI(x,y)
+        x = startX + 180 * i
+        
+        # 计算基准y位置，确保昵称对齐
+        baseY = app.height - app.pinnedSliderHeight + app.borderY*2
+        if isinstance(slider, PinnedSlider2D):
+            y = baseY - app.borderY*7 - 4  # 调整2D滑块的整体位置
+        else:
+            y = baseY
+            
+        slider.drawTwinUI(x, y)
 
         
 
@@ -297,10 +315,7 @@ def redrawAll(app):
         if app.currCstmzSlider:
             drawCstmzingSliderPopUp(app)
         
-
-
-    deltaPinnedSlider = 0 if app.isCompDisplay else app.pinnedSliderHeight
-    drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY - deltaPinnedSlider, border = 'black', fill = 'white')
+    drawRect(app.togglePanelStartX, app.togglePanelStartY, app.togglePanelWidth, app.height - app.toolbarHeight - 2 * app.paddingY, border = 'black', fill = 'white')
     
     for toggle in app.toggles:
         toggle.drawUI()
@@ -442,8 +457,13 @@ def onMousePress(app, mouseX, mouseY, button):
             # Check if a pinned slider handle is clicked
             for slider in app.pinnedSliders:
                 i = app.pinnedSliders.index(slider)  # Get slider index
-                x = 3 * app.borderX + 140 * i  # Calculate slider position
-                y = app.height - app.pinnedSliderHeight + app.borderY * 2
+                x = 3 * app.borderX + 180 * i  # Calculate slider position
+                
+                baseY = app.height - app.pinnedSliderHeight + app.borderY*2
+                if isinstance(slider, PinnedSlider2D):
+                    y = baseY - app.borderY*7 - 4  # 调整2D滑块的整体位置
+                else:
+                    y = baseY
                 
                 if slider.hitTestHandle(mouseX, mouseY, x, y):
                     app.currDraggingPinnedSlider = {  # Start dragging the pinned slider
@@ -497,22 +517,18 @@ def onMouseDrag(app, mouseX, mouseY):
         if not isinstance(comp, list):
             if isinstance(comp, Slider):
                 if comp.isDraggingHandle:
-                    # Handle slider value adjustment
-                    normalized_x = (mouseX - comp.x) / comp.width
-                    newValue = comp.min_val + normalized_x * (comp.max_val - comp.min_val)
-                    newValue = max(comp.min_val, min(comp.max_val, newValue))
-                    comp.updateValue(newValue)
+                    comp.handleDrag(mouseX, mouseY)
                 else:
-                    # Handle slider position movement
+                    # slider position movement for both 1D and 2D sliders
                     newX, newY = adjustPosition(comp, mouseX, mouseY)
                     comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
                     comp.updateNodePositions()
             else:
-                # Handle regular component movement
+                # regular component movement
                 newX, newY = adjustPosition(comp, mouseX, mouseY)
                 comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
                 comp.updateNodePositions()
-        
+
         # Multiple Components Dragging
         else:
             # Calculate movement delta
@@ -529,17 +545,30 @@ def onMouseDrag(app, mouseX, mouseY):
             app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
 
     ####### 4. Handle Pinned Slider Dragging ######
-    if app.currDraggingPinnedSlider:
+    elif app.currDraggingPinnedSlider:
         slider = app.currDraggingPinnedSlider['slider']
         x = app.currDraggingPinnedSlider['x']
+        y = app.currDraggingPinnedSlider['y']
         
-        # 计算新的值
-        normalized_x = (mouseX - x) / slider.width
-        newValue = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
-        newValue = max(slider.min_val, min(slider.max_val, newValue))
-        
-        # 更新 PinnedSlider 和原始 Slider 的值
-        slider.updateValue(newValue)
+        if isinstance(slider, PinnedSlider2D):
+            # 2D slider处理
+            normalized_x = (mouseX - x) / slider.width
+            normalized_y = 1 - (mouseY - y) / slider.height  # 反转y轴
+            
+            newX = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
+            newY = slider.min_val + normalized_y * (slider.max_val - slider.min_val)
+            
+            # 确保值在有效范围内
+            newX = max(slider.min_val, min(slider.max_val, newX))
+            newY = max(slider.min_val, min(slider.max_val, newY))
+            
+            slider.updateValue(newX, newY)
+        else:
+            # 1D slider处理
+            normalized_x = (mouseX - x) / slider.width
+            newValue = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
+            newValue = max(slider.min_val, min(slider.max_val, newValue))
+            slider.updateValue(newValue)
 
 
 def adjustPosition(comp, mouseX, mouseY):
@@ -606,7 +635,22 @@ def onMouseRelease(app, mouseX, mouseY):
         app.currDraggingPinnedSlider = None
 
     
-    ###### 4. Reset Group Dragging Reference ######
+    ###### 4. Reset Component Dragging States ######
+    if app.currDraggingComponent:
+        if isinstance(app.currDraggingComponent, list):
+            for comp in app.currDraggingComponent:
+                comp.isDragging = False
+        else:
+            app.currDraggingComponent.isDragging = False
+            if isinstance(app.currDraggingComponent, (Slider1D, Slider2D)):
+                app.currDraggingComponent.isDraggingHandle = False
+        app.currDraggingComponent = None
+
+    ###### 5. Reset Pinned Slider State ######
+    if app.currDraggingPinnedSlider:
+        app.currDraggingPinnedSlider = None
+
+    ###### 6. Reset Group Dragging Reference ######
     app.dragGroupOldMouseX, app.dragGroupOldMouseY = None, None
 
 
@@ -636,6 +680,7 @@ def onKeyPress(app, key):
                 idx = (fields.index(app.editingField) + 1) % len(fields)
                 app.editingField = fields[idx]  # Switch to the next field
                 app.customInput = ''  # Clear input
+        
         elif key == 'enter':
             # Save changes and exit editing mode
             if app.editingField == 'nickname':
@@ -645,17 +690,34 @@ def onKeyPress(app, key):
                 try:
                     new_value = float(app.customInput)
                     # 确保输入值在有效范围内
-                    if app.currCstmzSlider.min_val <= new_value <= app.currCstmzSlider.max_val:
-                        app.currCstmzSlider.updateValue(new_value)
+                    l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
+                    new_value = max(min(new_value, r), l)
+                    app.currCstmzSlider.updateValue(new_value)
                 except ValueError:
                     pass
-            
+            elif app.editingField == 'x':
+                try:
+                    new_x = float(app.customInput)
+                    # 确保输入值在有效范围内
+                    l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
+                    new_x = max(min(new_x, r), l)
+                    app.currCstmzSlider.updateValue(new_x, app.currCstmzSlider.outputNodes[1].value)
+                except ValueError:
+                    pass
+            elif app.editingField == 'y':
+                try:
+                    new_y = float(app.customInput)
+                    # 确保输入值在有效范围内
+                    l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
+                    new_y = max(min(new_y, r), l)
+                    app.currCstmzSlider.updateValue(app.currCstmzSlider.outputNodes[0].value, new_y)
+                except ValueError:
+                    pass
             elif app.editingField == 'min':
                 try:
                     new_min = int(app.customInput)
                     if new_min < app.currCstmzSlider.max_val:  # Validate minimum value
                         app.currCstmzSlider.min_val = new_min
-                    app.currCstmzSlider.updateValue((app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2)
                 except ValueError:
                     pass
             elif app.editingField == 'max':
@@ -663,7 +725,6 @@ def onKeyPress(app, key):
                     new_max = int(app.customInput)
                     if new_max > app.currCstmzSlider.min_val:  # Validate maximum value
                         app.currCstmzSlider.max_val = new_max
-                    app.currCstmzSlider.updateValue((app.currCstmzSlider.min_val + app.currCstmzSlider.max_val) / 2)
                 except ValueError:
                     pass
             elif app.editingField == 'precision':
@@ -677,7 +738,10 @@ def onKeyPress(app, key):
                 app.currCstmzSlider.isPinned = not app.currCstmzSlider.isPinned
                 if app.currCstmzSlider.isPinned:
                     # Create and add a pinned slider
-                    pinned_twin = PinnedSlider(app.currCstmzSlider, app)
+                    if isinstance(app.currCstmzSlider,Slider1D):
+                        pinned_twin = PinnedSlider1D(app.currCstmzSlider, app)
+                    elif isinstance(app.currCstmzSlider,Slider2D):
+                        pinned_twin = PinnedSlider2D(app.currCstmzSlider, app)
                     app.pinnedSliders.append(pinned_twin)
                 else:
                     # Remove the corresponding pinned slider
@@ -720,25 +784,9 @@ def onKeyPress(app, key):
 
     ####### 3. Handle General Keypress Actions ######
     else:
-        if key == 's':
-            # Create a new slider component
-            newSlider = Slider(app)
-            app.components.append(newSlider)
-        elif key == 'c':
-            # Create a new circle component
-            newCircleCreator = CircleCreator(app)
-            newCircleCreator.updateNodePositions()
-            app.components.append(newCircleCreator)
-        elif key == 'r':
-            # Create a new rectangle component
-            newRectCreator = RectCreator(app)
-            newRectCreator.updateNodePositions()
-            app.components.append(newRectCreator)
-        elif key == 'p':
-            # Create a new point component
-            newPoint = Point(app)
-            newPoint.updateNodePositions()
-            app.components.append(newPoint)
+        if key in app.component_map:
+        # Use the mapped class to create and append the component
+            create_and_append_component(app.component_map[key], app)
 
         elif key in ['backspace', 'delete']:
             # Delete selected components
@@ -747,7 +795,15 @@ def onKeyPress(app, key):
                     compo.deleteComponent(app)
                 app.selectedCompo = []  # Clear the selection
 
-        
+def create_and_append_component(component_class, app):
+    # Create a new component instance
+    new_component = component_class(app)
+    # Update node positions if the method exists
+    if hasattr(new_component, 'updateNodePositions'):
+        new_component.updateNodePositions()
+    # Append the component to the app's component list
+    app.components.append(new_component)
+
 def main():
     runApp()
 

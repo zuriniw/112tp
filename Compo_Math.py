@@ -100,3 +100,59 @@ class Multiply(BinaryOperator):
 class Divide(BinaryOperator):
     def __init__(self, app):
         super().__init__(app, '÷', 'Div')
+
+
+
+class Series(TypicleComponent):
+    def __init__(self, app):
+        inputs = ['First', 'Step', 'Count']
+        outputs = ['List']
+        name = 'Data\nSeries\n➜➜➜'
+        super().__init__(app, inputs, outputs, name)
+        
+        self.isGeo = False
+
+        # Set default values
+        self.inputDefaultValue = {
+            'First': 0,
+            'Step': 20,
+            'Count': 5
+        }
+        
+        # Initialize input nodes with default values
+        for node in self.inputNodes:
+            node.value = self.inputDefaultValue[node.name]
+            
+        # Initialize output node with calculated value
+        initial_output = self.calculate()
+        self.outputNodes[0].value = initial_output[0]
+        self.hasAllInputs = True
+        
+    def calculate(self):
+        first = self.inputNodes[0].value
+        step = self.inputNodes[1].value
+        count = self.inputNodes[2].value
+        
+        # Handle invalid inputs
+        if first is None or step is None or count is None:
+            return [[]]
+            
+        # Ensure count is positive integer
+        try:
+            count = max(0, int(count))
+        except (ValueError, TypeError):
+            count = 0
+            
+        # Handle list inputs
+        if isinstance(first, list):
+            return [first]  # Return first list as is
+            
+        if isinstance(step, list):
+            return [step]   # Return step list as is
+            
+        # Generate arithmetic sequence for numeric inputs
+        try:
+            series = [first + i * step for i in range(count)]
+            return [series]
+        except (ValueError, TypeError):
+            return [[]]  # Return empty list if calculation fails
