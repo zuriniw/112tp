@@ -424,6 +424,7 @@ def onMousePress(app, mouseX, mouseY, button):
                         else:
                             if not app.selectedCompo:  # 单个拖拽
                                 app.currDraggingComponent = component
+                                app.dragOffset = {'x': mouseX - app.currDraggingComponent.x, 'y': mouseY - app.currDraggingComponent.y}
                                 component.isDragging = True
                             else:  # 群组拖拽
                                 app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY

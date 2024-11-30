@@ -79,25 +79,6 @@ class Point(TypicleComponent):
         # 确保返回正确的默认值
         return self.inputDefaultValue.get(nodeName)
 
-    # def updateValue(self, name, value):
-    #     # 处理series输入的嵌套数组格式
-    #     if isinstance(value, list) and len(value) > 0 and isinstance(value[0], list):
-    #         value = value[0]  # 取出内层数组
-            
-    #     # 更新节点值
-    #     for node in self.inputNodes:
-    #         if node.name == name:
-    #             node.value = value
-    #             break
-                
-    #     if self.hasAllInputs:
-    #         output = self.calculate()
-    #         if output:
-    #             # 确保输出节点保持Node对象
-    #             self.outputNodes[0].value = output
-    #             # 通知所有连接的节点
-    #             for connection in self.outputNodes[0].connections:
-    #                 connection.end_node.receiveValue(output)
     
 
 
@@ -106,32 +87,49 @@ class Vector(TypicleComponent):
         inputs = ['start', 'end']
         outputs = ['vector']
         name = 'vector\n< >'
+        
         self.isGeo = False
+        self.isDisplay = False  # 添加显示标志
+        
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'start': (app.x0, app.y0),
-            'end': (app.x0+200, app.y0-200)
+            'start': [['point', (app.x0, app.y0)]],
+            'end': [['point', (app.x0+200, app.y0-200)]]
         }
         
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
-            
-        self.hasAllInputs = True
-    
-    def calculate(self):
-        start = self.inputNodes[0].value[1]
-        end = self.inputNodes[1].value[1]
         
-        # Add type checking and conversion
-        if isinstance(start, tuple) and isinstance(end, tuple):
-            try:
-                dx = end[0] - start[0]
-                dy = end[1] - start[1]
-                return [(dx, dy)]
-            except (ValueError, TypeError):
-                return [(0, 0)]
-        return [(0, 0)]
+        # 计算并设置初始输出值
+        self.outputNodes[0].value = self.calculate()
+        
+        self.hasAllInputs = True
+
+    def calculate(self):
+        start_val = self.inputNodes[0].value
+        end_val = self.inputNodes[1].value
+        
+        vectors = []
+        
+        # 处理起点和终点的不同输入情况
+        if (isinstance(start_val[0], list) and start_val[0][0] == 'point' and 
+            isinstance(end_val[0], list) and end_val[0][0] == 'point'):
+            
+            # 支持多点组合
+            for start in start_val:
+                for end in end_val:
+                    dx = end[1][0] - start[1][0]
+                    dy = end[1][1] - start[1][1]
+                    vectors.append((dx, dy))
+        
+        elif start_val[0] == 'point' and end_val[0] == 'point':
+            # 单点情况
+            dx = end_val[1][0] - start_val[1][0]
+            dy = end_val[1][1] - start_val[1][1]
+            vectors.append((dx, dy))
+        
+        return vectors if vectors else [(0, 0)]
 
 
 class VectorPreview(TypicleComponent):
@@ -144,8 +142,8 @@ class VectorPreview(TypicleComponent):
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'vector': (50, -50),
-            'anchor': ['point',(app.x0, app.y0)]
+            'vector': [(50, -50)],
+            'anchor': [['point',(app.x0, app.y0)]]
         }
         
         for node in self.inputNodes:
@@ -158,11 +156,13 @@ class VectorPreview(TypicleComponent):
     
     def draw(self):
         vector_val = self.inputNodes[0].value
-        anchor_val = self.inputNodes[1].value[1]
+        anchor_val = self.inputNodes[1].value
         if vector_val and anchor_val:
-            dx, dy = vector_val
-            x0, y0 = anchor_val
-            x1, y1 = x0 + dx, y0 + dy
-            drawLine(x0, y0, x1, y1, fill='pink', arrowEnd=True, visible=self.isDisplay)
+            for vector in vector_val:
+                for anchor in anchor_val:
+                    dx, dy = vector
+                    x0, y0 = anchor[1]
+                    x1, y1 = x0 + dx, y0 + dy
+                    drawLine(x0, y0, x1, y1, fill='pink', arrowEnd=True, visible=self.isDisplay)
 
 
