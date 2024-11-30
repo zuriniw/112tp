@@ -11,7 +11,7 @@ class Point(TypicleComponent):
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'x': [0,50],
+            'x': 0,
             'y': 0
         }
         
@@ -24,59 +24,80 @@ class Point(TypicleComponent):
         self.hasAllInputs = True
         
 
-            
     def calculate(self):
         x_val = self.inputNodes[0].value
         y_val = self.inputNodes[1].value
         
-        # Case 1: Both x and y are single values
+        # Case 1: Both x and y are single values (from sliders)
         if not isinstance(x_val, list) and not isinstance(y_val, list):
             world_x = x_val + self.app.x0
             world_y = self.app.y0 - y_val
             return [['point', (world_x, world_y)]]
         
-        # Case 2: x is list[20,40,60], y is single value:0
+        # Case 2: x from series [[20,40,60]], y from slider
         elif isinstance(x_val, list) and not isinstance(y_val, list):
             points = []
-            for x in x_val[:2000]:
+            values = x_val[0] if isinstance(x_val[0], list) else x_val
+            for x in values[:2000]:
                 world_x = x + self.app.x0
                 world_y = self.app.y0 - y_val
                 points.append(['point', (world_x, world_y)])
             return points
         
-        # Case 3: x is single value, y is list
+        # Case 3: x from slider, y from series [[20,40,60]]
         elif not isinstance(x_val, list) and isinstance(y_val, list):
             points = []
-            for y in y_val[:2000]:
+            values = y_val[0] if isinstance(y_val[0], list) else y_val
+            for y in values[:2000]:
                 world_x = x_val + self.app.x0
                 world_y = self.app.y0 - y
                 points.append(['point', (world_x, world_y)])
             return points
         
-        # Case 4: Both x and y are lists
+        # Case 4: Both x and y from series [[20,40,60]]
         else:
             points = []
-            for x in x_val[:50]:
-                for y in y_val[:40]:
+            x_values = x_val[0] if isinstance(x_val[0], list) else x_val
+            y_values = y_val[0] if isinstance(y_val[0], list) else y_val
+            for x in x_values[:50]:
+                for y in y_values[:40]:
                     world_x = x + self.app.x0
                     world_y = self.app.y0 - y
                     points.append(['point', (world_x, world_y)])
             return points
+    
 
     def draw(self):
-        if self.hasAllInputs:
             points = self.calculate()
             for point in points:
-                if point[0] == 'point':
-                    x, y = point[1]
-                    drawCircle(x, y, 4, fill='white',
-                            border='blue',
-                            visible=self.isDisplay)
+                x, y = point[1]
+                drawCircle(x, y, 4, fill='white',
+                        border='blue',
+                        visible=self.isDisplay)
 
     def getDefaultValue(self, nodeName):
         # 确保返回正确的默认值
         return self.inputDefaultValue.get(nodeName)
-    
+
+    def updateValue(self, name, value):
+        # 处理series输入的嵌套数组格式
+        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], list):
+            value = value[0]  # 取出内层数组
+            
+        # 更新节点值
+        for node in self.inputNodes:
+            if node.name == name:
+                node.value = value
+                break
+                
+        if self.hasAllInputs:
+            output = self.calculate()
+            if output:
+                # 确保输出节点保持Node对象
+                self.outputNodes[0].value = output
+                # 通知所有连接的节点
+                for connection in self.outputNodes[0].connections:
+                    connection.end_node.receiveValue(output)
     
 
 

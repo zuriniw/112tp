@@ -114,11 +114,13 @@ class TypicleComponent(Component):
             if node.name == nodeName:
                 node.value = value
                 break
-        
-        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
+                
         if self.hasAllInputs:
             output_values = self.calculate()
             if output_values:
-                for node, value in zip(self.outputNodes, output_values):
-                    node.value = value
+                # 修改这里：更新Node的value而不是替换Node对象
+                self.outputNodes[0].value = output_values
+                # 通知所有连接的下游节点
+                for connection in self.outputNodes[0].connections:
+                    connection.end_node.receiveValue(self.outputNodes[0].value)
 

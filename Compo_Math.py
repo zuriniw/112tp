@@ -132,9 +132,9 @@ class Series(TypicleComponent):
         first = self.inputNodes[0].value
         step = self.inputNodes[1].value
         count = self.inputNodes[2].value
-        
         try:
             series = [first + i * step for i in range(count)]
-            return [series]  # 返回包含列表的列表 [[0, 20, 40, 60, 80]]
+            return [series]  # 返回
         except (ValueError, TypeError):
             return [[]]
+            

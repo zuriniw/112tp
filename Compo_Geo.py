@@ -26,11 +26,13 @@ class CircleCreator(TypicleComponent):
         radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
         
         circles = []
-        for point in point_val:
-            if isinstance(point, list) and point[0] == 'point':
+        if isinstance(point_val[0],list) and point_val[0][0] == 'point':
+            for point in point_val:
                 circles.append(['cir', point[1], radius_val])
+        else:
+            if point_val[0] == 'point':
+                circles.append(['cir', point_val[1], radius_val])
         return circles
-
         
     def draw(self):
         if self.hasAllInputs:
@@ -45,6 +47,26 @@ class CircleCreator(TypicleComponent):
                                  fill=None,
                                  border='blue',
                                  visible=self.isDisplay)
+                        
+    def updateValue(self, nodeName, value):
+        for node in self.inputNodes:
+            if node.name == nodeName:
+                # 对于point输入，需要创建新的列表
+                if nodeName == 'point':
+                    node.value = list(value)
+                else:
+                    node.value = value
+                break
+        
+        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
+        if self.hasAllInputs:
+            output_values = self.calculate()
+            if output_values:
+                for node, value in zip(self.outputNodes, output_values):
+                    node.value = value
+                    # 通知所有连接的下游节点
+                    for connection in node.connections:
+                        connection.end_node.receiveValue(value)
     
                         
 class RectCreator(TypicleComponent):

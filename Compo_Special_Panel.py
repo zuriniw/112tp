@@ -33,21 +33,31 @@ class Panel(Component):
             node.drawNode()
         
         # Draw background
-        drawRect(self.x, self.y, self.width, self.height, 
-                 fill='white' if not self.isSelected else 'lightGrey', 
-                 border='black')
+        drawRect(self.x, self.y, self.width, self.height,
+                fill='white' if not self.isSelected else 'lightGrey',
+                border='black')
         
         # Draw value
         if self.value is not None:
-            drawLabel(f'{self.value}', 
-                      self.x + self.width/2, 
-                      self.y + self.height/2, 
-                      size=16)
+            if isinstance(self.value, list) and len(self.value) > 0:
+                # 显示所有数据，不限制行数
+                line_height = 20  # 每行文字的高度
+                start_y = self.y + 20  # 从顶部开始的偏移
+                for i, item in enumerate(self.value):
+                    drawLabel(f'{item}',
+                            self.x + self.width/2,
+                            start_y + i * line_height,
+                            size=12)
+            else:
+                drawLabel(f'{self.value}',
+                        self.x + self.width/2,
+                        self.y + self.height/2,
+                        size=16)
         else:
-            drawLabel('Feed food 4 me!', 
-                      self.x + self.width/2, 
-                      self.y + self.height/2, 
-                      fill='grey')
+            drawLabel('Feed food 4 me!',
+                    self.x + self.width/2,
+                    self.y + self.height/2,
+                    fill='grey')
 
     def receiveValue(self, value):
         # Update the displayed value when input changes
