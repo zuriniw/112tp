@@ -3,7 +3,7 @@ from Components import TypicleComponent
 
 class CircleCreator(TypicleComponent):
     def __init__(self, app):
-        inputs = ['point', 'radius']
+        inputs = ['point', 'radius','isGradFill']
         outputs = ['circle']
         name = 'Draw\nCirc\nO'
         self.isGeo = True
@@ -12,7 +12,8 @@ class CircleCreator(TypicleComponent):
         
         self.inputDefaultValue = {
             'point': [['point', (app.x0, app.y0)]],
-            'radius': 40
+            'radius': 40,
+            'isGradFill':False
         }
         
         for node in self.inputNodes:
@@ -20,10 +21,13 @@ class CircleCreator(TypicleComponent):
             
         self.outputNodes[0].value = [['cir', (app.x0, app.y0), 40]]
         self.hasAllInputs = True
+
+        self.isGradFill = False
         
     def calculate(self):
         point_val = self.inputNodes[0].value
         radius_val = self.inputNodes[1].value
+        isGradFill = True if self.inputNodes[2].value == 1 else False
 
         # 使用helper function对齐列表
         point_val, radius_val = align_lists(point_val, radius_val, 
@@ -33,7 +37,8 @@ class CircleCreator(TypicleComponent):
         for point, radius in zip(point_val, radius_val):
             if point[0] == 'point':
                 circles.append(['cir', point[1], abs(radius)])
-
+        
+        self.isGradFill = isGradFill
         return circles
         
     def draw(self):
@@ -46,8 +51,8 @@ class CircleCreator(TypicleComponent):
                     radius = circle[2]
                     if int(radius) != 0:
                         drawCircle(x, y, radius,
-                                 fill=None,
-                                 border='blue',
+                                 border=None if self.isGradFill else 'blue',
+                                 fill=gradient('blue', 'white') if self.isGradFill else None,
                                  visible=self.isDisplay)
                     
                         
