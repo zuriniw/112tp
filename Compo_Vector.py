@@ -79,25 +79,25 @@ class Point(TypicleComponent):
         # 确保返回正确的默认值
         return self.inputDefaultValue.get(nodeName)
 
-    def updateValue(self, name, value):
-        # 处理series输入的嵌套数组格式
-        if isinstance(value, list) and len(value) > 0 and isinstance(value[0], list):
-            value = value[0]  # 取出内层数组
+    # def updateValue(self, name, value):
+    #     # 处理series输入的嵌套数组格式
+    #     if isinstance(value, list) and len(value) > 0 and isinstance(value[0], list):
+    #         value = value[0]  # 取出内层数组
             
-        # 更新节点值
-        for node in self.inputNodes:
-            if node.name == name:
-                node.value = value
-                break
+    #     # 更新节点值
+    #     for node in self.inputNodes:
+    #         if node.name == name:
+    #             node.value = value
+    #             break
                 
-        if self.hasAllInputs:
-            output = self.calculate()
-            if output:
-                # 确保输出节点保持Node对象
-                self.outputNodes[0].value = output
-                # 通知所有连接的节点
-                for connection in self.outputNodes[0].connections:
-                    connection.end_node.receiveValue(output)
+    #     if self.hasAllInputs:
+    #         output = self.calculate()
+    #         if output:
+    #             # 确保输出节点保持Node对象
+    #             self.outputNodes[0].value = output
+    #             # 通知所有连接的节点
+    #             for connection in self.outputNodes[0].connections:
+    #                 connection.end_node.receiveValue(output)
     
 
 

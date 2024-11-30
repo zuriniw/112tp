@@ -30,7 +30,7 @@ class UnaryOperator(TypicleComponent):
     def calculate(self):  # 新增，符合基类接口
         n_val = self.inputNodes[0].value
         result = self.performOperation(n_val)
-        return [result]
+        return result
 
 class Reverse(UnaryOperator):
     def __init__(self, app):
@@ -83,7 +83,7 @@ class BinaryOperator(TypicleComponent):
         n1_val = self.inputNodes[0].value
         n2_val = self.inputNodes[1].value
         result = self.performOperation(n1_val, n2_val)
-        return [result]
+        return result
 
 class Add(BinaryOperator):
     def __init__(self, app):

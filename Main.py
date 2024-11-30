@@ -127,6 +127,8 @@ def onAppStart(app):
     app.pinnedSliderHeight = 100
     app.currDraggingPinnedSlider = None
 
+    app.dragOffset = None
+
 
 
 def loadToolbar(app): 
@@ -413,28 +415,29 @@ def onMousePress(app, mouseX, mouseY, button):
                         app.currDraggingComponent = None  # Reset dragging state
                         return
                     
-                    # Handle slider-specific interaction
+                # First check if we're in group dragging mode
+                if app.selectedCompo:  # Group dragging
+                    app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+                    app.currDraggingComponent = app.selectedCompo
+                    for compo in app.selectedCompo:
+                        compo.isDragging = True
+                else:  # Single component dragging
+                    app.currDraggingComponent = component
+                    app.dragOffset = {'x': mouseX - app.currDraggingComponent.x, 
+                                    'y': mouseY - app.currDraggingComponent.y}
+                    
+                    # Handle slider-specific behavior
                     if isinstance(component, Slider):
                         if component.hitTestHandle(mouseX, mouseY):  # Check handle
                             component.isDraggingHandle = True
-                            app.currDraggingComponent = component
                         else:  # General dragging of the slider
-                            app.currDraggingComponent = component
                             component.isDragging = True
                             component.isDraggingHandle = False
-                    # Handle general component interaction
-                    else:
-                        if not app.selectedCompo:  # Single component dragging
-                            app.currDraggingComponent = component
-                            component.isDragging = True
-                        else:  # Group dragging
-                            app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
-                            app.currDraggingComponent = app.selectedCompo
-                            for compo in app.selectedCompo:
-                                compo.isDragging = True
-                    
-                    app.lastClickTime = currentTime  # Update last click time
-                    break
+                    else:  # Regular component
+                        component.isDragging = True
+                                    
+                        app.lastClickTime = currentTime  # Update last click time
+                        break
             
             ####### 3.3 Empty Space Interaction ######
             if not hitComponent:
@@ -520,12 +523,12 @@ def onMouseDrag(app, mouseX, mouseY):
                     comp.handleDrag(mouseX, mouseY)
                 else:
                     # slider position movement for both 1D and 2D sliders
-                    newX, newY = adjustPosition(comp, mouseX, mouseY)
+                    newX, newY = adjustPosition(app, comp, mouseX, mouseY)
                     comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
                     comp.updateNodePositions()
             else:
                 # regular component movement
-                newX, newY = adjustPosition(comp, mouseX, mouseY)
+                newX, newY = adjustPosition(app, comp, mouseX, mouseY)
                 comp.x, comp.y = keepWithinBounds(app, newX, newY, comp)
                 comp.updateNodePositions()
 
@@ -571,9 +574,9 @@ def onMouseDrag(app, mouseX, mouseY):
             slider.updateValue(newValue)
 
 
-def adjustPosition(comp, mouseX, mouseY):
-    newX = mouseX - comp.width / 2
-    newY = mouseY - comp.height / 2
+def adjustPosition(app, comp, mouseX, mouseY):
+    newX = mouseX - app.dragOffset['x']
+    newY = mouseY - app.dragOffset['y']
     return newX, newY
 
 def keepWithinBounds(app, x, y, com):
@@ -583,7 +586,7 @@ def keepWithinBounds(app, x, y, com):
 
 
 def onMouseRelease(app, mouseX, mouseY):
-    ###### 1. Handle New Component Creation ######
+    ###### 1.  New Component Creation ######
     if app.isDraggingNewComponent and app.draggedComponentType:
         if mouseY > app.toolbarHeight:  # Only create if dropped in valid area
             # Create and position new component
@@ -598,7 +601,7 @@ def onMouseRelease(app, mouseX, mouseY):
         app.draggedComponentType = None
         return
     
-    ###### 2. Handle Node Connection Creation ######
+    ###### 2.  Node Connection Creation ######
     if app.draggingNode:
         start_node = app.draggingNode
         for component in app.components:
@@ -616,7 +619,7 @@ def onMouseRelease(app, mouseX, mouseY):
         app.draggingNode = None
         app.tempConnection = None
     
-    ###### 3. Handle Drag Selection ######
+    ###### 3.  Drag Selection ######
     if app.isDragSelecting:
         app.isDragSelecting = False
         # Check each component for intersection with selection frame
@@ -645,6 +648,7 @@ def onMouseRelease(app, mouseX, mouseY):
             if isinstance(app.currDraggingComponent, (Slider1D, Slider2D)):
                 app.currDraggingComponent.isDraggingHandle = False
         app.currDraggingComponent = None
+        app.dragOffset = None
 
     ###### 5. Reset Pinned Slider State ######
     if app.currDraggingPinnedSlider:

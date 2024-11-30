@@ -47,27 +47,7 @@ class CircleCreator(TypicleComponent):
                                  fill=None,
                                  border='blue',
                                  visible=self.isDisplay)
-                        
-    def updateValue(self, nodeName, value):
-        for node in self.inputNodes:
-            if node.name == nodeName:
-                # 对于point输入，需要创建新的列表
-                if nodeName == 'point':
-                    node.value = list(value)
-                else:
-                    node.value = value
-                break
-        
-        self.hasAllInputs = all(node.value is not None for node in self.inputNodes)
-        if self.hasAllInputs:
-            output_values = self.calculate()
-            if output_values:
-                for node, value in zip(self.outputNodes, output_values):
-                    node.value = value
-                    # 通知所有连接的下游节点
-                    for connection in node.connections:
-                        connection.end_node.receiveValue(value)
-    
+                    
                         
 class RectCreator(TypicleComponent):
     def __init__(self, app):
