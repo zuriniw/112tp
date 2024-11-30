@@ -27,44 +27,20 @@ class Point(TypicleComponent):
     def calculate(self):
         x_val = self.inputNodes[0].value
         y_val = self.inputNodes[1].value
-        
-        # Case 1: Both x and y are single values (from sliders)
-        if not isinstance(x_val, list) and not isinstance(y_val, list):
-            world_x = x_val + self.app.x0
-            world_y = self.app.y0 - y_val
-            return [['point', (world_x, world_y)]]
-        
-        # Case 2: x from series [[20,40,60]], y from slider
-        elif isinstance(x_val, list) and not isinstance(y_val, list):
-            points = []
-            values = x_val[0] if isinstance(x_val[0], list) else x_val
-            for x in values[:2000]:
+
+        # 确保x和y都是列表
+        x_val = [x_val] if not isinstance(x_val, list) else x_val
+        y_val = [y_val] if not isinstance(y_val, list) else y_val
+
+        # 展开x和y的列表，生成笛卡尔积
+        points = []
+        for x in x_val:
+            for y in y_val:
                 world_x = x + self.app.x0
-                world_y = self.app.y0 - y_val
-                points.append(['point', (world_x, world_y)])
-            return points
-        
-        # Case 3: x from slider, y from series [[20,40,60]]
-        elif not isinstance(x_val, list) and isinstance(y_val, list):
-            points = []
-            values = y_val[0] if isinstance(y_val[0], list) else y_val
-            for y in values[:2000]:
-                world_x = x_val + self.app.x0
                 world_y = self.app.y0 - y
                 points.append(['point', (world_x, world_y)])
-            return points
-        
-        # Case 4: Both x and y from series [[20,40,60]]
-        else:
-            points = []
-            x_values = x_val[0] if isinstance(x_val[0], list) else x_val
-            y_values = y_val[0] if isinstance(y_val[0], list) else y_val
-            for x in x_values[:50]:
-                for y in y_values[:40]:
-                    world_x = x + self.app.x0
-                    world_y = self.app.y0 - y
-                    points.append(['point', (world_x, world_y)])
-            return points
+
+        return points
     
 
     def draw(self):

@@ -3,7 +3,7 @@ from Components import *
 
 #from Compo_Special_Slider import *
 from Compo_Special_Slider import *
-
+from Compo_Analyse_Distance import *
 from Compo_Special_Panel import *
 from Compo_Geo import *
 from Compo_Math import *
@@ -84,7 +84,7 @@ def onAppStart(app):
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider1D, Slider2D, Series, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
         'Manipulation': [Move],
-        'Analyze': [Panel],
+        'Analyze': [Panel, Distance],
         'Vector': [Point, Vector, VectorPreview]
     }
     app.activeCategory = 'Geometry'

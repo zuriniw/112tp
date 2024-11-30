@@ -23,15 +23,17 @@ class CircleCreator(TypicleComponent):
         
     def calculate(self):
         point_val = self.inputNodes[0].value
-        radius_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
-        
+        radius_val = self.inputNodes[1].value
+
+        # 使用helper function对齐列表
+        point_val, radius_val = align_lists(point_val, radius_val, 
+                                            default_value=['point', (self.app.x0, self.app.y0)])
+
         circles = []
-        if isinstance(point_val[0],list) and point_val[0][0] == 'point':
-            for point in point_val:
-                circles.append(['cir', point[1], radius_val])
-        else:
-            if point_val[0] == 'point':
-                circles.append(['cir', point_val[1], radius_val])
+        for point, radius in zip(point_val, radius_val):
+            if point[0] == 'point':
+                circles.append(['cir', point[1], abs(radius)])
+
         return circles
         
     def draw(self):
@@ -106,3 +108,31 @@ class RectCreator(TypicleComponent):
                              fill=None, 
                              border='blue', 
                              visible=self.isDisplay)
+
+def align_lists(list1, list2, default_value=None):
+    """
+    使两个列表长度一致，并返回调整后的列表
+    
+    Args:
+        list1: 第一个列表
+        list2: 第二个列表
+        default_value: 用于填充的默认值
+    
+    Returns:
+        调整后的两个列表
+    """
+    # 确保输入是列表
+    list1 = [list1] if not isinstance(list1, list) else list1
+    list2 = [list2] if not isinstance(list2, list) else list2
+    
+    # 如果list1比list2短，延长list1
+    if len(list1) < len(list2):
+        last_item = list1[-1] if list1 else default_value
+        list1.extend([last_item] * (len(list2) - len(list1)))
+    
+    # 如果list2比list1短，延长list2  
+    elif len(list2) < len(list1):
+        last_item = list2[-1] if list2 else default_value
+        list2.extend([last_item] * (len(list1) - len(list2)))
+    
+    return list1, list2

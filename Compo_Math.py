@@ -79,11 +79,21 @@ class BinaryOperator(TypicleComponent):
         elif self.operator == '×': return n1 * n2
         elif self.operator == '÷': return n1 / (n2 if n2 != 0 else 1)
     
-    def calculate(self):  # 新增，符合基类接口
+    def calculate(self):
         n1_val = self.inputNodes[0].value
         n2_val = self.inputNodes[1].value
-        result = self.performOperation(n1_val, n2_val)
-        return result
+
+        # 确保输入是列表
+        n1_val = [n1_val] if not isinstance(n1_val, list) else n1_val
+        n2_val = [n2_val] if not isinstance(n2_val, list) else n2_val
+
+        # 使用align_lists确保列表长度一致
+        n1_val, n2_val = align_lists(n1_val, n2_val, default_value=0)
+
+        # 执行对应的二元操作
+        results = [self.performOperation(n1, n2) for n1, n2 in zip(n1_val, n2_val)]
+
+        return results
 
 class Add(BinaryOperator):
     def __init__(self, app):
@@ -134,7 +144,34 @@ class Series(TypicleComponent):
         count = self.inputNodes[2].value
         try:
             series = [first + i * step for i in range(count)]
-            return [series]  # 返回
+            return series  # 返回
         except (ValueError, TypeError):
-            return [[]]
-            
+            return []
+
+def align_lists(list1, list2, default_value=None):
+    """
+    使两个列表长度一致，并返回调整后的列表
+    
+    Args:
+        list1: 第一个列表
+        list2: 第二个列表
+        default_value: 用于填充的默认值
+    
+    Returns:
+        调整后的两个列表
+    """
+    # 确保输入是列表
+    list1 = [list1] if not isinstance(list1, list) else list1
+    list2 = [list2] if not isinstance(list2, list) else list2
+    
+    # 如果list1比list2短，延长list1
+    if len(list1) < len(list2):
+        last_item = list1[-1] if list1 else default_value
+        list1.extend([last_item] * (len(list2) - len(list1)))
+    
+    # 如果list2比list1短，延长list2  
+    elif len(list2) < len(list1):
+        last_item = list2[-1] if list2 else default_value
+        list2.extend([last_item] * (len(list1) - len(list2)))
+    
+    return list1, list2
