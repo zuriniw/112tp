@@ -18,7 +18,7 @@ class Panel(Component):
             'value': None,
         }
 
-        self.width = 120
+        self.width = 160
         self.height = 60
         self.value = None
         
@@ -31,23 +31,46 @@ class Panel(Component):
         # Draw node
         for node in self.inputNodes:
             node.drawNode()
-        
+
+        # Calculate dynamic height based on content
+        if self.value is not None and isinstance(self.value, list):
+            line_height = 20
+            max_display_lines = 12
+            label_count = min(len(self.value), max_display_lines) + 1
+            self.height = self.app.borderY * 2.2 + label_count * line_height
+
         # Draw background
         drawRect(self.x, self.y, self.width, self.height,
                 fill='white' if not self.isSelected else 'lightGrey',
                 border='black')
-        
+
         # Draw value
         if self.value is not None:
             if isinstance(self.value, list) and len(self.value) > 0:
-                # 显示所有数据，不限制行数
-                line_height = 20  # 每行文字的高度
-                start_y = self.y + 20  # 从顶部开始的偏移
-                for i, item in enumerate(self.value):
-                    drawLabel(f'{item}',
+                line_height = 20
+                start_y = self.y + self.app.borderY * 1.1
+
+                # Display first line with total items count
+                drawLabel(f'{len(self.value)} items in total',
+                        self.x + self.width/2,
+                        start_y,
+                        size=12,
+                        fill='grey')
+
+                # Display up to 12 lines
+                for i in range(min(len(self.value), 12)):
+                    drawLabel(f'{self.value[i]}',
                             self.x + self.width/2,
-                            start_y + i * line_height,
+                            start_y + (i+1) * line_height,
                             size=12)
+                
+                # Add ellipsis if more than 12 lines
+                if len(self.value) > 12:
+                    drawLabel('...',
+                            self.x + self.width/2,
+                            start_y + 13 * line_height,
+                            size=12,
+                            fill='grey')
             else:
                 drawLabel(f'{self.value}',
                         self.x + self.width/2,

@@ -127,7 +127,8 @@ def onAppStart(app):
     app.pinnedSliderHeight = 100
     app.currDraggingPinnedSlider = None
 
-    app.dragOffset = None
+    app.dragOffset = {'x': 0, 
+                         'y': 0}
 
 
 
@@ -415,29 +416,35 @@ def onMousePress(app, mouseX, mouseY, button):
                         app.currDraggingComponent = None  # Reset dragging state
                         return
                     
-                # First check if we're in group dragging mode
-                if app.selectedCompo:  # Group dragging
-                    app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
-                    app.currDraggingComponent = app.selectedCompo
-                    for compo in app.selectedCompo:
-                        compo.isDragging = True
-                else:  # Single component dragging
-                    app.currDraggingComponent = component
-                    app.dragOffset = {'x': mouseX - app.currDraggingComponent.x, 
-                                    'y': mouseY - app.currDraggingComponent.y}
-                    
-                    # Handle slider-specific behavior
+                    # Handle slider-specific interaction
                     if isinstance(component, Slider):
-                        if component.hitTestHandle(mouseX, mouseY):  # Check handle
+                        if component.hitTestHandle(mouseX, mouseY):
                             component.isDraggingHandle = True
-                        else:  # General dragging of the slider
-                            component.isDragging = True
+                            app.currDraggingComponent = component
+                        else:
+                            if not app.selectedCompo:  # 单个拖拽
+                                app.currDraggingComponent = component
+                                component.isDragging = True
+                            else:  # 群组拖拽
+                                app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+                                app.currDraggingComponent = app.selectedCompo
+                                for compo in app.selectedCompo:
+                                    compo.isDragging = True
                             component.isDraggingHandle = False
-                    else:  # Regular component
-                        component.isDragging = True
-                                    
-                        app.lastClickTime = currentTime  # Update last click time
-                        break
+                    # Handle general component interaction
+                    else:
+                        if not app.selectedCompo:  # Single component dragging
+                            app.currDraggingComponent = component
+                            app.dragOffset = {'x': mouseX - app.currDraggingComponent.x, 'y': mouseY - app.currDraggingComponent.y}
+                            component.isDragging = True
+                        else:  # Group dragging
+                            app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
+                            app.currDraggingComponent = app.selectedCompo
+                            for compo in app.selectedCompo:
+                                compo.isDragging = True
+                    
+                    app.lastClickTime = currentTime  # Update last click time
+                    break
             
             ####### 3.3 Empty Space Interaction ######
             if not hitComponent:
@@ -648,7 +655,8 @@ def onMouseRelease(app, mouseX, mouseY):
             if isinstance(app.currDraggingComponent, (Slider1D, Slider2D)):
                 app.currDraggingComponent.isDraggingHandle = False
         app.currDraggingComponent = None
-        app.dragOffset = None
+        app.dragOffset = {'x': 0, 
+                         'y': 0}
 
     ###### 5. Reset Pinned Slider State ######
     if app.currDraggingPinnedSlider:
