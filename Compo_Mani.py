@@ -11,61 +11,88 @@ class Move(TypicleComponent):
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'geo': None,
-            'vector': (200, -200)
+            'geo': [['cir',(app.x0, app.y0),40]],
+            'vector': [['vector',(200, -200)]]
         }
         
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
             
-        self.hasAllInputs = False
+        self.hasAllInputs = True
     
     def calculate(self):
-        geo_val = self.inputNodes[0].value
-        dx, dy = self.inputNodes[1].value
+        geo_val = self.inputNodes[0].value      # get [['geoName',(x,y),...,....]['geoName',(x,y),...,....]...]
+        vector_val = self.inputNodes[1].value   # get [['vector',(x,y)]['vector', (x,y)]...]
         
+        #align_lists(geo_val, vector_val)
+        #print(f'geo{geo_val} & vect{vector_val}')
         if not geo_val or not isinstance(geo_val, list):
-            return [None]
+            return [[None]]
             
-        currShape = geo_val[0]
-        if currShape == 'cir':
-            x, y = geo_val[1]
-            r = geo_val[2]
-            return [['cir', (x + dx, y + dy), r]]
-        elif currShape == 'rect':
-            x, y = geo_val[1]
-            w = geo_val[2]
-            h = geo_val[3]
-            return [['rect', (x + dx, y + dy), w, h]]
-        elif currShape == 'point':
-            x, y = geo_val[1]
-            #r = geo_val[2]
-            return [['point', (x + dx, y + dy)]]
-    
+        moved_geos = []
+        for geo in geo_val:
+            currShape = geo[0]
+            x, y = geo[1]
+            for vect in vector_val:
+                # Get the vector displacement
+                dx, dy = vect[1]  # vector format is ['vector', (dx,dy)]
+            
+                if currShape == 'cir':
+                    r = geo[2]
+                    moved_geos.append(['cir', (x + dx, y + dy), r])
+                elif currShape == 'rect':
+                    w = geo[2]
+                    h = geo[3]
+                    moved_geos.append(['rect', (x + dx, y + dy), w, h])
+                elif currShape == 'point':
+                    moved_geos.append(['point', (x + dx, y + dy)])
+                
+        return moved_geos if moved_geos else [[None]]
+
     def draw(self):
         if self.hasAllInputs:
             geo_val = self.inputNodes[0].value
             vector_val = self.inputNodes[1].value
             
-            if not geo_val or not vector_val or len(geo_val) < 2:
+            if not geo_val or not vector_val:
                 return
                 
-            currShape = geo_val[0]
-            x, y = geo_val[1]
-            dx, dy = vector_val
-            
-            if currShape == 'cir':
-                r = geo_val[2]
-                if int(r) != 0:
-                    drawCircle(x + dx, y + dy, r, fill=None, border='blue',visible=self.isDisplay)
-            elif currShape == 'rect':
-                w = geo_val[2]
-                h = geo_val[3]
-                if int(w) != 0 and int(h) != 0:
-                    drawRect(x + dx - w/2, y + dy - h/2, w, h, fill=None, border='blue',visible=self.isDisplay)
-            elif currShape == 'point':
-                #r = geo_val[2]
-                drawCircle(x + dx, y + dy, 4, fill='white', border='blue', borderWidth=2,visible=self.isDisplay)
-            
-            drawLine(x, y, x + dx, y + dy, fill='lightBlue', dashes=True,visible=self.isDisplay)
+            moved_geos = self.calculate()
+            if not moved_geos or moved_geos[0] is None:
+                return
+                
+            for geo in moved_geos:
+                shape_type = geo[0]
+                gx, gy = geo[1]
+
+                if shape_type == 'cir':
+                    r = geo[2]
+                    if int(r) != 0:
+                        drawCircle(gx, gy, r, fill=None, border='blue', visible=self.isDisplay)
+                elif shape_type == 'rect':
+                    w = geo[2]
+                    h = geo[3]
+                    if int(w) != 0 and int(h) != 0:
+                        drawRect(gx - w/2, gy - h/2, w, h, fill=None, border='blue', visible=self.isDisplay)
+                elif shape_type == 'point':
+                    drawCircle(gx, gy, 4, fill='white', border='blue', borderWidth=2, visible=self.isDisplay)
+                for vect in vector_val:
+                    vx0, vy0 = vect[1]
+                    vx = gx - vx0
+                    vy = gy - vy0
+                    drawLine(vx, vy, gx, gy, fill='lightBlue', dashes=True, visible=self.isDisplay)
+
+
+def align_lists(list1, list2, default_value=None):
+    list1 = [list1] if not isinstance(list1, list) else list1
+    list2 = [list2] if not isinstance(list2, list) else list2
+    
+    # Both lists extend to match each other
+    if len(list1) < len(list2):
+        last_item = list1[-1] if list1 else default_value
+        list1.extend([last_item] * (len(list2) - len(list1)))
+    elif len(list2) < len(list1):
+        last_item = list2[-1] if list2 else default_value
+        list2.extend([last_item] * (len(list1) - len(list2)))
+    
 

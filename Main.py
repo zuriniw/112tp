@@ -1,7 +1,7 @@
 from cmu_graphics import *
+
 from Components import *
 
-#from Compo_Special_Slider import *
 from Compo_Special_Slider import *
 from Compo_Analyse_Distance import *
 from Compo_Special_Panel import *
@@ -87,7 +87,7 @@ def onAppStart(app):
         'Analyze': [Panel, Distance],
         'Vector': [Point, Vector, VectorPreview]
     }
-    app.activeCategory = 'Geometry'
+    app.activeCategory = 'Math'
     loadToolbar(app)
 
     # Dictionary mapping keys to component classes
@@ -130,7 +130,7 @@ def onAppStart(app):
     app.dragOffset = {'x': 0, 
                          'y': 0}
 
-
+    app.message = 'Welcome!'
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -277,7 +277,9 @@ def drawPinnedSliders(app):
             
         slider.drawTwinUI(x, y)
 
-        
+def drawMessage(app):
+    dx = len(app.message) * 6
+    drawLabel(app.message, app.togglePanelStartX - dx, app.height - app.borderY*2)       
 
 def redrawAll(app):
     drawPlayground(app)
@@ -285,6 +287,7 @@ def redrawAll(app):
     drawGrid(app)
     drawAxis(app)
     drawDot(app)
+    drawMessage(app)
     
     if app.isCompDisplay:
         # Draw existing components

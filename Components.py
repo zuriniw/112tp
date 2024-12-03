@@ -118,9 +118,8 @@ class TypicleComponent(Component):
         if self.hasAllInputs:
             output_values = self.calculate()
             if output_values:
-                # 修改这里：更新Node的value而不是替换Node对象
                 self.outputNodes[0].value = output_values
-                # 通知所有连接的下游节点
+                # broadcast
                 for connection in self.outputNodes[0].connections:
                     connection.end_node.receiveValue(self.outputNodes[0].value)
 
