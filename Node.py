@@ -41,31 +41,21 @@ class Node:
     def receiveValue(self, value):
         self.value = value
         self.component.updateValue(self.name, value)
-        print(f'{self.component} update value of {self.name} to {value}')
 
     def addConnection(self, connection):
-        # 如果是输入节点
+        # for inputNode
         if not self.isOutput:
-            # 删除现有的所有连接
+            # clear old
             for existing_conn in self.connections[:]:
                 existing_conn.deleteConnection(self.component.app)
-            
-            # 清空连接列表
             self.connections = []
-            
-            # 重置值为None，等待新的值传入
             self.value = None
-            
-            # 添加新连接
+            # add new
             self.connections.append(connection)
-            
-            # 从新的输出节点获取值
             self.value = connection.start_node.value
-            
-            # 触发组件的值更新
             self.component.updateValue(self.name, self.value)
         
-        # 如果是输出节点，保持原有逻辑
+        # for outputNode
         else:
             self.connections.append(connection)
             if self.value is not None:
