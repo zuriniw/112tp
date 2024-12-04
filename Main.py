@@ -673,7 +673,13 @@ def onMouseRelease(app, mouseX, mouseY):
             
             messageName = getFirstTwoLines(newComponent.name)
             app.message = f'A ^{messageName}^ added ;-)'
-            app.hintMessage = 'Whoo why not wire them together?' if len(app.components)==2 else "Great! We already have one  ;-) let's invite another component"
+            if len(app.components)==2:
+                app.hintMessage = 'Whoo why not WIRE them together?'  
+            elif len(app.components)==1:
+                app.hintMessage = "Great! We already have one  ;-) let's invite another component"
+            else:
+                app.hintMessage = "If you wanna remove the component, just DOUBLE CLICK on it"
+
 
         
         # Reset dragging state
@@ -700,7 +706,7 @@ def onMouseRelease(app, mouseX, mouseY):
                                 shapeCount = len(endNode.component.outputNodes[0].value)
                                 if new_connection.isValid and shapeName != 'point':
                                     app.message = f'{shapeCount} {shapeName}(s) be drawn successfully :-)'
-                                    app.hintMessage = 'Congrats! What about create more?'
+                                    app.hintMessage = 'Congrats! u can hide the base point(s) by right click and toggle'
                         app.connections.append(new_connection)
         
         # Reset node dragging state

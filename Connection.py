@@ -8,6 +8,7 @@ class Connections:
     
     def validateConnection(self, app):
         start_value, end_value = self.start_node.value, self.end_node.value
+        start_compo, end_compo = self.start_node.component, self.end_node.component
         
         if self.end_node.component.name == 'Create\nPanel\n[/]':
             return True
@@ -42,12 +43,12 @@ class Connections:
 
             # 圆形类型检查,这里需要修改，因为move里面谁都能进
             if end_value[0][0] == 'cir':
-                circle_validation = (
-                    isinstance(start_value, (int, float)) or 
-                    (isinstance(start_value, list) and 
-                    all(isinstance(v, (int, float)) for v in start_value))
+                shape_validation = (
+                    isinstance(start_value, list) and 
+                    isinstance(start_value[0], list) and 
+                    start_compo.isGeo
                 )
-                if not circle_validation:
+                if not shape_validation:
                     app.message = ';-( Invalid feed!'
                     app.hintMessage = '[plz feed in numeric values; double click the connection to unwire]'
                     return False

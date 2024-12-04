@@ -1,6 +1,14 @@
 from cmu_graphics import *
 from Components import TypicleComponent
 
+## take in world cdnt and give back drawing cdnt for drawing
+def getDrawingPoint(x0,y0,worldPoint):
+    wx, wy = worldPoint
+    dx = wx + x0
+    dy = y0 - wy
+    drawingPoint = (dx, dy)
+    return drawingPoint
+
 class Move(TypicleComponent):
     def __init__(self, app):
         inputs = ['geo', 'vector']
@@ -11,14 +19,16 @@ class Move(TypicleComponent):
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'geo': [['cir',(app.x0, app.y0),40]],
+            'geo': [['cir',(0, 0),40]],
             'vector': [['vector',(200, -200)]]
         }
         
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
-            
+        self.outputNodes[0].value = self.calculate()
+
         self.hasAllInputs = True
+        self.x0, self.y0 = app.x0, app.y0
     
     def calculate(self):
         geo_val = self.inputNodes[0].value      # get [['geoName',(x,y),...,....]['geoName',(x,y),...,....]...]
@@ -53,7 +63,7 @@ class Move(TypicleComponent):
         if self.hasAllInputs:
             geo_val = self.inputNodes[0].value
             vector_val = self.inputNodes[1].value
-            
+
             if not geo_val or not vector_val:
                 return
                 
@@ -63,7 +73,8 @@ class Move(TypicleComponent):
                 
             for geo in moved_geos:
                 shape_type = geo[0]
-                gx, gy = geo[1]
+                #######
+                gx, gy = getDrawingPoint(self.x0, self.y0,geo[1])
 
                 if shape_type == 'cir':
                     r = geo[2]
@@ -73,14 +84,15 @@ class Move(TypicleComponent):
                     w = geo[2]
                     h = geo[3]
                     if int(w) != 0 and int(h) != 0:
-                        drawRect(gx - w/2, gy - h/2, w, h, fill=None, border='blue', visible=self.isDisplay)
+                        drawRect(gx, gy, w, h, fill=None, border='blue', visible=self.isDisplay)
                 elif shape_type == 'point':
                     drawCircle(gx, gy, 4, fill='white', border='blue', borderWidth=2, visible=self.isDisplay)
+                
                 for vect in vector_val:
                     vx0, vy0 = vect[1]
                     vx = gx - vx0
-                    vy = gy - vy0
-                    drawLine(vx, vy, gx, gy, fill='lightBlue', dashes=True, visible=self.isDisplay)
+                    vy = gy + vy0
+                    drawLine(vx, vy, gx, gy, fill='lightBlue', dashes=True, visible=self.isDisplay, opacity = 50)
 
 
 def align_lists(list1, list2, default_value=None):
