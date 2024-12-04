@@ -147,6 +147,7 @@ def onAppStart(app):
                          'y': 0}
 
     app.message = 'Welcome!'
+    app.hintMessage = ''
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -295,7 +296,7 @@ def drawPinnedSliders(app):
 def drawMessage(app):
     dx = len(app.message) * 6
     drawLabel(app.message, app.togglePanelStartX - app.paddingX, app.height - app.borderY*2, align = 'right')       
-
+    drawLabel(app.hintMessage, app.togglePanelStartX - app.paddingX, app.height - app.borderY*4, align = 'right', fill = 'grey')       
 def redrawAll(app):
     drawPlayground(app)
     drawToolbar(app)
@@ -681,19 +682,20 @@ def onMouseRelease(app, mouseX, mouseY):
         nodeA = app.draggingNode
         for component in app.components:
             for node in component.inputNodes + component.outputNodes:
-                if node.hitTest(mouseX, mouseY) and node != nodeA:
+                if node.hitTest(mouseX, mouseY) and node.component != nodeA:
                     # Ensure one input and one output
-                    if nodeA.isOutput != node.isOutput:
+                    if nodeA.isOutput != node.isOutput and nodeA.component != node.component:
                         startNode,endNode = (nodeA,node) if nodeA.isOutput else (node,nodeA)
                         # Create and setup new connection
-                        new_connection = Connections(startNode, endNode)
+                        new_connection = Connections(app,startNode, endNode)
 
                         new_connection.end_node.addConnection(new_connection)
                         new_connection.start_node.addConnection(new_connection)
                         if endNode.component.isGeo:
                             shapeName = endNode.component.outputNodes[0].value[0][0]
                             shapeCount = len(endNode.component.outputNodes[0].value)
-                            app.message = f'draw {shapeCount} {shapeName} successfully :-)'
+                            if new_connection.isValid:
+                                app.message = f'draw {shapeCount} {shapeName} successfully :-)'
                         app.connections.append(new_connection)
         
         # Reset node dragging state

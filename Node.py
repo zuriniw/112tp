@@ -49,16 +49,16 @@ class Node:
             for existing_conn in self.connections[:]:
                 existing_conn.deleteConnection(self.component.app)
             self.connections = []
-            self.value = None
             # add new
             self.connections.append(connection)
-            self.value = connection.start_node.value
-            self.component.updateValue(self.name, self.value)
+            if connection.isValid:
+                self.value = connection.start_node.value
+                self.component.updateValue(self.name, self.value)
         
         # for outputNode
         else:
             self.connections.append(connection)
-            if self.value is not None:
+            if connection.isValid and self.value is not None:
                 connection.end_node.receiveValue(self.value)
 
 
