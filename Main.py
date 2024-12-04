@@ -45,7 +45,7 @@ def onAppStart(app):
     app.isAxisDisplay = True
     app.isGridDisplay = True
     app.isDotDisplay = False
-    app.isGuidbookDisplay = False
+    app.isMessageDisplay = True
     
     ## Toggle Panel Settings
     app.toggleStates = {
@@ -53,7 +53,7 @@ def onAppStart(app):
         'Axis Display': app.isAxisDisplay,
         'Grid Display': app.isGridDisplay,
         'Dot Display': app.isDotDisplay,
-        'Guidbook Display': app.isGuidbookDisplay
+        'Message Display': app.isMessageDisplay
     }
     
     ## Toggle Panel Layout
@@ -143,11 +143,11 @@ def onAppStart(app):
     app.pinnedSliderHeight = 100
     app.currDraggingPinnedSlider = None
 
-    app.dragOffset = {'x': 0, 
-                         'y': 0}
+    app.dragOffset = {'x': 0, 'y': 0}
 
-    app.message = 'Welcome!'
-    app.hintMessage = ''
+    app.message = ';-) Welcome 2 ShapeShift Playgound!'
+    app.hintMessage = "drag-and-drop a component from the toolbar and let's go!"
+    app.secondHintMessage = 'press [BACKSPACE] to temporary block, or [TOGGLE OFF] me on the right panel'
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -294,16 +294,18 @@ def drawPinnedSliders(app):
         slider.drawTwinUI(x, y)
 
 def drawMessage(app):
-    dx = len(app.message) * 6
-    drawLabel(app.message, app.togglePanelStartX - app.paddingX, app.height - app.borderY*2, align = 'right')       
-    drawLabel(app.hintMessage, app.togglePanelStartX - app.paddingX, app.height - app.borderY*4, align = 'right', fill = 'grey')       
+    drawLabel(app.message, app.togglePanelStartX - app.paddingX, app.height - app.borderY*2, align = 'right', size = 16)       
+    drawLabel(app.hintMessage, app.togglePanelStartX - app.paddingX, app.height - app.borderY*4, align = 'right', fill = 'blue' if not 'Invalid' in app.message else rgb(215, 127, 87), size = 14)       
+    drawLabel(app.secondHintMessage, app.togglePanelStartX - app.paddingX, app.height - app.borderY*6, align = 'right', fill = 'grey', size = 14, opacity = 50)       
+
 def redrawAll(app):
     drawPlayground(app)
     drawToolbar(app)
     drawGrid(app)
     drawAxis(app)
     drawDot(app)
-    drawMessage(app)
+    if app.isMessageDisplay:
+        drawMessage(app)
     
     if app.isCompDisplay:
         # Draw existing components
@@ -670,7 +672,9 @@ def onMouseRelease(app, mouseX, mouseY):
             newComponent.updateNodePositions()
             
             messageName = getFirstTwoLines(newComponent.name)
-            app.message = f'A ^{messageName}^ added!'
+            app.message = f'A ^{messageName}^ added ;-)'
+            app.hintMessage = 'Whoo why not wire them together?' if len(app.components)==2 else "Great! We already have one  ;-) let's invite another component"
+
         
         # Reset dragging state
         app.isDraggingNewComponent = False
@@ -691,11 +695,11 @@ def onMouseRelease(app, mouseX, mouseY):
                         new_connection.end_node.addConnection(new_connection)
                         new_connection.start_node.addConnection(new_connection)
                         if new_connection.isValid:
-                            if endNode.component.isGeo:
+                            if endNode.component.isGeo and endNode.component.name !='Vector\nPreview\n→':
                                 shapeName = endNode.component.outputNodes[0].value[0][0]
                                 shapeCount = len(endNode.component.outputNodes[0].value)
-                                if new_connection.isValid:
-                                    app.message = f'draw {shapeCount} {shapeName} successfully :-)'
+                                if new_connection.isValid and shapeName != 'point'
+                                    app.message = f'{shapeCount} {shapeName}(s) be drawn successfully :-)'
                         app.connections.append(new_connection)
         
         # Reset node dragging state
@@ -712,7 +716,10 @@ def onMouseRelease(app, mouseX, mouseY):
                               app.dragFrameStart, app.dragFrameEnd):
                 app.selectedCompo.append(compo)
                 compo.isSelected = True
-        
+        if app.selectedCompo:
+            app.message = f'You have selected {len(app.selectedCompo)} component(s) ;-)'
+            app.hintMessage = 'move ? delete ?'
+
         # Reset selection frame
         app.dragFrameStart = None
         app.dragFrameEnd = None
@@ -756,6 +763,11 @@ def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
 
 
 def onKeyPress(app, key):
+    if key == 'backspace':
+        app.message = ';-)'
+        app.hintMessage = ''
+        app.secondHintMessage = ''
+
     ####### 1. Handle Custom Slider Interaction ######
     if app.currCstmzSlider:
         if key == 'tab':

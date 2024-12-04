@@ -1,6 +1,14 @@
 from cmu_graphics import *
 from Components import *
 
+## take in world cdnt and give back drawing cdnt for drawing
+def getDrawingPoint(x0,y0,worldPoint):
+    wx, wy = worldPoint
+    dx = wx + x0
+    dy = y0 - wy
+    drawingPoint = (dx, dy)
+    return drawingPoint
+
 class Point(TypicleComponent):
     def __init__(self, app):
         inputs = ['x', 'y']
@@ -32,9 +40,7 @@ class Point(TypicleComponent):
         points = []
         for x in x_val:
             for y in y_val:
-                world_x = x + self.app.x0
-                world_y = self.app.y0 - y
-                points.append(['point', (world_x, world_y)])
+                points.append(['point', (x, y)])
 
         return points
     
@@ -43,7 +49,9 @@ class Point(TypicleComponent):
             points = self.calculate()
             for point in points:
                 x, y = point[1]
-                drawCircle(x, y, 4, fill='white',
+                worldX = x + self.app.x0
+                worldY = self.app.y0 - y
+                drawCircle(worldX, worldY, 4, fill='white',
                         border='blue',
                         visible=self.isDisplay)
 
@@ -65,8 +73,8 @@ class Vector(TypicleComponent):
         super().__init__(app, inputs, outputs, name)
         
         self.inputDefaultValue = {
-            'start': [['point', (app.x0, app.y0)]],
-            'end': [['point', (app.x0+200, app.y0-200)]]
+            'start': [['point', (0, 0)]],
+            'end': [['point', (200, 200)]]
         }
         
         for node in self.inputNodes:
@@ -91,12 +99,6 @@ class Vector(TypicleComponent):
                     dy = end[1][1] - start[1][1]
                     vectors.append(['vector',(dx, dy)])
         
-        else:
-            ###########
-            # print error message
-            ###########
-            pass
-        
         return vectors if vectors else [[vectors,(0, 0)]]
 
 
@@ -108,10 +110,11 @@ class VectorPreview(TypicleComponent):
         self.isGeo = True
         self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
+        self.x0, self.y0 = app.x0, app.y0
         
         self.inputDefaultValue = {
             'vector': [['vector', (50, -50)]],
-            'anchor': [['point',(app.x0, app.y0)]]
+            'anchor': [['point',(0, 0)]]
         }
         
         for node in self.inputNodes:
@@ -129,8 +132,8 @@ class VectorPreview(TypicleComponent):
             for vector in vector_val:
                 for anchor in anchor_val:
                     dx, dy = vector[1]
-                    x0, y0 = anchor[1]
+                    x0, y0 = getDrawingPoint(self.x0, self.y0,anchor[1])
                     x1, y1 = x0 + dx, y0 + dy
-                    drawLine(x0, y0, x1, y1, fill='pink', arrowEnd=True, visible=self.isDisplay)
+                    drawLine(x0, y0, x1, y1, fill=rgb(218, 231, 231), arrowEnd=True, visible=self.isDisplay)
 
 

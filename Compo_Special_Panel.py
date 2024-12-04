@@ -21,7 +21,7 @@ class Panel(Component):
         self.width = 160
         self.height = 60
         self.value = None
-        
+        self.isGeo = False
         self.updateNodePositions()
 
     def getDefaultValue(self, nodeName):
@@ -94,3 +94,5 @@ class Panel(Component):
             for node in self.inputNodes:
                 if node.name == name:
                     node.value = value
+
+                

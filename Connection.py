@@ -8,9 +8,10 @@ class Connections:
     
     def validateConnection(self, app):
         start_value, end_value = self.start_node.value, self.end_node.value
-        # Enhanced type validation
-        if start_value is None:
-            return False
+        
+        if self.end_node.component.name == 'Create\nPanel\n[/]':
+            return True
+
         if isinstance(end_value, list):
             # 当输入端 不是单值 是列表
 
@@ -23,8 +24,8 @@ class Connections:
                     start_value[0][0] == 'point'
                 )
                 if not point_validation:
-                    app.message = 'Wrong feed!'
-                    app.hintMessage = '[should feed in point(s), double click the connection to unwire]'
+                    app.message = ';-( Invalid feed!'
+                    app.hintMessage = '[plz feed in point(s); double click the connection to unwire]'
                     return False
             # 向量类型检查
             if end_value[0][0] == 'vector':
@@ -32,11 +33,11 @@ class Connections:
                     isinstance(start_value, list) and 
                     len(start_value) > 0 and 
                     isinstance(start_value[0], list) and 
-                    start_value[0][0] == 'point'
+                    start_value[0][0] == 'vector'
                 )
                 if not vector_validation:
-                    app.message = 'Vector requires point input!'
-                    app.hintMessage = '[feed point(s) for vector, double click the connection to unwire]'
+                    app.message = ';-( Invalid feed!'
+                    app.hintMessage = '[plz feed in vector(s); double click the connection to unwire]'
                     return False
 
             # 圆形类型检查,这里需要修改，因为move里面谁都能进
@@ -47,8 +48,8 @@ class Connections:
                     all(isinstance(v, (int, float)) for v in start_value))
                 )
                 if not circle_validation:
-                    app.message = 'Circle requires numeric input!'
-                    app.hintMessage = '[feed numeric values, double click the connection to unwire]'
+                    app.message = ';-( Invalid feed!'
+                    app.hintMessage = '[plz feed in numeric values; double click the connection to unwire]'
                     return False
 
         # 数值类型检查（单值或列表）
@@ -59,19 +60,23 @@ class Connections:
                 isinstance((start_value[0]), (int, float)))
             )
             if not value_validation:
-                app.message = 'Invalid value input!'
-                app.hintMessage = '[requires numeric input, double click the connection to unwire]'
+                app.message = ';-( Invalid feed!'
+                app.messageColor = rgb(226, 163, 136)
+                app.hintMessage = '[requires numeric input; double click the connection to unwire]'
                 return False
-            
-        print('pass the type check!')
+        ###现在如果把东西输入panel会报错
+        
+
+        print('pass the type checssk!')
         return True
 
     def draw(self):
+        lightPink = rgb(226, 163, 136)
         drawLine(
             self.start_node.x, self.start_node.y,
             self.end_node.x, self.end_node.y,
             lineWidth=2,
-            fill='grey' if self.isValid else 'orange',
+            fill='grey' if self.isValid else lightPink,
         )
     
     def hitTest(self, mouseX, mouseY, threshold=5):
