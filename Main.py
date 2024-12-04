@@ -684,12 +684,13 @@ def onMouseRelease(app, mouseX, mouseY):
                 if node.hitTest(mouseX, mouseY) and node != nodeA:
                     # Ensure one input and one output
                     if nodeA.isOutput != node.isOutput:
-                        startNode = nodeA if nodeA.isOutput else node
-                        endNode = nodeA if not nodeA.isOutput else node
+                        startNode,endNode = (nodeA,node) if nodeA.isOutput else (node,nodeA)
                         # Create and setup new connection
                         new_connection = Connections(startNode, endNode)
-                        new_connection.start_node.addConnection(new_connection)
+
                         new_connection.end_node.addConnection(new_connection)
+                        new_connection.start_node.addConnection(new_connection)
+                        
                         app.connections.append(new_connection)
 
 

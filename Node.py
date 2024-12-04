@@ -36,27 +36,40 @@ class Node:
     
     
     ###### 2 // Manage Data Flow ######
+
+    # endnode(inputnode) hear from outputnode
     def receiveValue(self, value):
         self.value = value
         self.component.updateValue(self.name, value)
-        
-        # 添加向下游组件传递更新的逻辑
-        if self.isOutput:
-            for connection in self.connections:
-                connection.end_node.receiveValue(self.value)
+        print(f'{self.component} update value of {self.name} to {value}')
 
     def addConnection(self, connection):
+        # 如果是输入节点
+        if not self.isOutput:
+            # 删除现有的所有连接
+            for existing_conn in self.connections[:]:
+                existing_conn.deleteConnection(self.component.app)
+            
+            # 清空连接列表
+            self.connections = []
+            
+            # 重置值为None，等待新的值传入
+            self.value = None
+            
+            # 添加新连接
+            self.connections.append(connection)
+            
+            # 从新的输出节点获取值
+            self.value = connection.start_node.value
+            
+            # 触发组件的值更新
+            self.component.updateValue(self.name, self.value)
         
-        if self.isOutput and self.value is not None:
-            # 获取最新的计算结果
-            current_value = self.component.calculate()
-            self.value = current_value  # 更新自身的值
-            connection.end_node.receiveValue(self.value)  # 传递给新连接的节点
-        elif not self.isOutput:
-            if self.connections:
-                self.connections = []
-
-        self.connections.append(connection)
+        # 如果是输出节点，保持原有逻辑
+        else:
+            self.connections.append(connection)
+            if self.value is not None:
+                connection.end_node.receiveValue(self.value)
 
 
     def removeConnection(self, connection):
