@@ -8,15 +8,24 @@ class ToolbarTab:
         self.height = 30
         self.category = category
         self.isActive = isActive
+        self.isHovering = False
         
     def drawUI(self):
+        if self.isActive:
+            bgColor, textColor = 'black', 'white'
+        else:
+            if self.isHover:
+                bgColor, textColor = rgb(78,78,78), 'white'
+            else:
+                bgColor, textColor = 'white', 'black'
+        
         drawRect(self.x, self.y, self.width, self.height, 
-                fill='black' if self.isActive else 'white',
+                fill=bgColor,
                 border='black')
         drawLabel(self.category, 
                  self.x + self.width/2, 
                  self.y + self.height/2, 
-                 fill='white' if self.isActive else 'black')
+                 fill=textColor)
     
     def hitTest(self, mouseX, mouseY):
         return (self.x <= mouseX <= self.x + self.width and 

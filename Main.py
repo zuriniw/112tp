@@ -81,13 +81,14 @@ def onAppStart(app):
     app.isDraggingNewComponent = False
     app.draggedComponentType = None
     app.componentTypes = {
+        'Vector': [Point, Vector, VectorPreview],
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider1D, Slider2D, Series, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
         'Manipulation': [Move],
         'Analyze': [Panel, Distance],
-        'Vector': [Point, Vector, VectorPreview]
+        
     }
-    app.activeCategory = 'Math'
+    app.activeCategory = 'Vector'
     loadToolbar(app)
 
     # Dictionary mapping keys to component classes
@@ -103,11 +104,26 @@ def onAppStart(app):
     }
 
     app.compoInfoMapping = {
-        CircleCreator: 'input:\n x,y,r\noutput:\n circle shape',
-        Point: 'input:\n x,y\noutput:\n point',
-        Vector: 'input:\n   -start: point(s)\n   -end: point(s)\n \noutput:\n   -vector(s)',
-        Move: 'input:\n geo,vector\noutput:\n moved geo',
-        # Add more component descriptions as needed
+        Vector: f"input:\n -start: geo point(s)\n -end: geo point(s)\n \noutput:\n -vector(s)\n{'-'*24}\nVector is invisable!\n\nFeed it in [Move Geo]\nOr use [Vect Preview]\nto have a look;-)",
+        Point: f"input:\n -x: num(s)\n -y: num(s)\n \noutput:\n -geo point(s)\n{'-'*24}\npoint is the mother of\nalmost anything here\neg: Geometry, Vector,\n ..., except number(s)\n who is the grandma",
+        VectorPreview: 'input:\n -vector: vector(s)\n -anchor: geo point(s)\n \noutput:\n -none',
+        CircleCreator: 'input:\n -point: geo point(s)\n -radius: num(s)\n -isGradFill: boolean\n \noutput:\n -circle(s)',
+        RectCreator: 'input:\n -point: geo point(s)\n -width: num(s)\n -height: num(s)\n \noutput:\n -rect(s)',
+        Move: 'input:\n -geo:point/rect/cir..(s)\n -vector: vector(s)\n \noutput:\n -moved geo(s)',
+        Series: f"input:\n -First: num\n -Step: num\n -Count: num\n \noutput:\n -list of nums\n{'-'*24}\nWhy not feed output\nto [Point]'s x or y to\ncreate points array?",
+        Reverse: 'input:\n -n: num(s)\n \noutput:\n -negated num(s)',
+        Square: 'input:\n -n: num(s)\n \noutput:\n -squared num(s)',
+        SquareRoot: 'input:\n -n: num(s)\n \noutput:\n -the square root(s)',
+        MultiplyPi: 'input:\n -n: num(s)\n \noutput:\n -π * n(s)',
+        Absolute: 'input:\n -n: num(s)\n \noutput:\n -the absolute val(s)',
+        Add: 'input:\n -n_1: num(s)\n -n_2: num(s)\n \noutput:\n -the sum(s)',
+        Subtract: 'input:\n -n_1: num(s)\n -n_2: num(s)\n \noutput:\n -the difference(s)',
+        Multiply: 'input:\n -n_1: num(s)\n -n_2: num(s)\n \noutput:\n -the product(s)',
+        Divide: 'input:\n -n_1: num(s)\n -n_2: num(s)\n \noutput:\n -the quotient(s)',
+
+        Slider1D: f"no input node here\noutput:\n -num\n{'-'*24}\n[DRAG HANDLE]\nto give 1 value \n\n[RIGHT CLICK]\nto set parameters\n - [TAB]:  navigate \n - [TYPE]:  enter\n - [ENTER]: set/toggle",
+        Slider2D: f"no input node here\noutput:\n -num\n{'-'*24}\n[DRAG HANDLE]\nto give 1 value \n\n[RIGHT CLICK]\nto set parameters\n - [TAB]:  navigate \n - [TYPE]:  enter\n - [ENTER]: set/toggle",
+
     }
     
     ## Toolbar Tabs
@@ -364,7 +380,7 @@ def drawCurrCompoInToolBarInfo(app):
     
     x0, y0 = app.infoboxX, app.infoboxY
     comp = app.currCompInToolBar
-    dy = app.paddingY+2
+    dy = app.paddingY+4
 
     if comp in app.compoInfoMapping:
         compInfo = app.compoInfoMapping[comp]
@@ -373,7 +389,7 @@ def drawCurrCompoInToolBarInfo(app):
         textY0 = y0 + app.borderY
         
         height = len(compInfo.splitlines()) * (dy) + app.borderY
-        width = 80
+        width = 110
 
         drawRect(x0, y0, width + 2*app.borderX, height, 
             fill='white', border='black', borderWidth=2)
@@ -389,17 +405,16 @@ def onMouseMove(app, mouseX, mouseY):
     app.mouseX = mouseX
     app.mouseY = mouseY
     
-    ###### 2. Handle Node Hovering ######
+    ###### 2.  Node Hovering ######
     # Reset all node hover states
     for component in app.components:
         for node in component.inputNodes + component.outputNodes:
             node.isHovering = node.hitTest(mouseX, mouseY)
     
-    ###### 3. Handle Button Hovering ######
+    ###### 3.  Button Hovering ######
     for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
         # Check toolbar button hovering
-
     for button in app.currButtomList:
         if button.hitTest(mouseX, mouseY):
             # Only set if not already set
@@ -407,6 +422,20 @@ def onMouseMove(app, mouseX, mouseY):
                 app.currCompInToolBar = button.component
                 app.infoboxX, app.infoboxY = button.x, button.y + 65
             return
+        
+    ###### 4.  Tab Hovering ######
+    foundHover = False
+    for tab in app.tabs:
+        if tab.hitTest(mouseX, mouseY):
+            tab.isHovering = True
+            foundHover = True
+        else:
+            tab.isHovering = False
+
+    if not foundHover:
+        for tab in app.tabs:
+            tab.isHover = False
+
 
     # Only reset if a button is no longer being hovered
     if app.currCompInToolBar is not None:

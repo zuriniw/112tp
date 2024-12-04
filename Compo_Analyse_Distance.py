@@ -19,6 +19,7 @@ class Distance(TypicleComponent):
         
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
+        self.outputNodes[0].value = self.calculate()
         
         self.hasAllInputs = True
 
