@@ -14,7 +14,7 @@ class ToolbarTab:
         if self.isActive:
             bgColor, textColor = 'black', 'white'
         else:
-            if self.isHover:
+            if self.isHovering:
                 bgColor, textColor = rgb(78,78,78), 'white'
             else:
                 bgColor, textColor = 'white', 'black'
