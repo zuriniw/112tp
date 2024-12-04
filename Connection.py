@@ -11,17 +11,59 @@ class Connections:
         # Enhanced type validation
         if start_value is None:
             return False
-        
-        # Specific checks for point and radius
-        if isinstance(end_value, list) and end_value[0][0] == 'point':
-            # Ensure start_value is compatible point type
-            if not (isinstance(start_value, list) and 
+        if isinstance(end_value, list):
+            # 当输入端 不是单值 是列表
+
+            # 点类型检查
+            if end_value[0][0] == 'point':
+                point_validation = (
+                    isinstance(start_value, list) and 
+                    len(start_value) > 0 and 
                     isinstance(start_value[0], list) and 
-                    start_value[0][0] == 'point'):
-                app.message = f'Wrong feed!'
-                app.hintMessage = f'[should feed in point(s)]'
+                    start_value[0][0] == 'point'
+                )
+                if not point_validation:
+                    app.message = 'Wrong feed!'
+                    app.hintMessage = '[should feed in point(s)]'
+                    return False
+            # 向量类型检查
+            if end_value[0][0] == 'vector':
+                vector_validation = (
+                    isinstance(start_value, list) and 
+                    len(start_value) > 0 and 
+                    isinstance(start_value[0], list) and 
+                    start_value[0][0] == 'point'
+                )
+                if not vector_validation:
+                    app.message = 'Vector requires point input!'
+                    app.hintMessage = '[feed point(s) for vector]'
+                    return False
+
+            # 圆形类型检查,这里需要修改，因为move里面谁都能进
+            if end_value[0][0] == 'cir':
+                circle_validation = (
+                    isinstance(start_value, (int, float)) or 
+                    (isinstance(start_value, list) and 
+                    all(isinstance(v, (int, float)) for v in start_value))
+                )
+                if not circle_validation:
+                    app.message = 'Circle requires numeric input!'
+                    app.hintMessage = '[feed numeric values]'
+                    return False
+
+        # 数值类型检查（单值或列表）
+        elif isinstance(end_value, (int, float)):
+            value_validation = (
+                isinstance(start_value, (int, float)) or 
+                (isinstance(start_value, list) and 
+                isinstance((start_value[0]), (int, float)))
+            )
+            if not value_validation:
+                app.message = 'Invalid value input!'
+                app.hintMessage = '[requires numeric input]'
                 return False
-        
+            
+        print('pass the type check!')
         return True
 
     def draw(self):

@@ -688,14 +688,14 @@ def onMouseRelease(app, mouseX, mouseY):
                         startNode,endNode = (nodeA,node) if nodeA.isOutput else (node,nodeA)
                         # Create and setup new connection
                         new_connection = Connections(app,startNode, endNode)
-
-                        new_connection.end_node.addConnection(new_connection)
-                        new_connection.start_node.addConnection(new_connection)
-                        if endNode.component.isGeo:
-                            shapeName = endNode.component.outputNodes[0].value[0][0]
-                            shapeCount = len(endNode.component.outputNodes[0].value)
-                            if new_connection.isValid:
-                                app.message = f'draw {shapeCount} {shapeName} successfully :-)'
+                        if new_connection.isValid:
+                            new_connection.end_node.addConnection(new_connection)
+                            new_connection.start_node.addConnection(new_connection)
+                            if endNode.component.isGeo:
+                                shapeName = endNode.component.outputNodes[0].value[0][0]
+                                shapeCount = len(endNode.component.outputNodes[0].value)
+                                if new_connection.isValid:
+                                    app.message = f'draw {shapeCount} {shapeName} successfully :-)'
                         app.connections.append(new_connection)
         
         # Reset node dragging state
