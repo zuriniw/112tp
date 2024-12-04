@@ -124,6 +124,9 @@ def onAppStart(app):
         Slider1D: f"no input node here\noutput:\n -num\n{'-'*24}\n[DRAG HANDLE]\nto give 1 value \n\n[RIGHT CLICK]\nto set parameters\n - [TAB]:  navigate \n - [TYPE]:  enter\n - [ENTER]: set/toggle",
         Slider2D: f"no input node here\noutput:\n -num\n{'-'*24}\n[DRAG HANDLE]\nto give 1 value \n\n[RIGHT CLICK]\nto set parameters\n - [TAB]:  navigate \n - [TYPE]:  enter\n - [ENTER]: set/toggle",
 
+        Panel: f"input:\n -any output\noutput:\n data repre\n{'-'*24}\nIt add transparency\nto your mysterious \ncomponents",
+        Distance: f"input:\n -geo/point(s)\n -geo/point(s)\noutput:\n -distance num(s)\n{'-'*24}\nDistance can be\ninput(s) of other geo",
+
     }
     
     ## Toolbar Tabs
@@ -162,7 +165,7 @@ def onAppStart(app):
     app.dragOffset = {'x': 0, 'y': 0}
 
     app.message = ';-) Welcome 2 ShapeShift Playgound!'
-    app.hintMessage = "drag-and-drop a component from the toolbar and let's go!"
+    app.hintMessage = "DRAG-&-DROP a component from toolbar. Let's go!"
     app.secondHintMessage = 'press [BACKSPACE] to temporary block, or [TOGGLE OFF] me on the right panel'
 
 def loadToolbar(app): 
@@ -446,7 +449,7 @@ def onMousePress(app, mouseX, mouseY, button):
     # Handle left mouse button interaction
     if button == 0:
         currentTime = time.time()
-
+        app.currCompInToolBar = []
         ####### 1. Toolbar Interaction ######
         # Check interaction with toolbar buttons
         for button in app.currButtomList:
@@ -705,7 +708,7 @@ def onMouseRelease(app, mouseX, mouseY):
             if len(app.components)==2:
                 app.hintMessage = 'Whoo why not WIRE them together?'  
             elif len(app.components)==1:
-                app.hintMessage = "Great! We already have one  ;-) let's invite another component"
+                app.hintMessage = "Nice try ;-) let's invite another component"
             else:
                 app.hintMessage = "If you wanna remove the component, just DOUBLE CLICK on it"
 

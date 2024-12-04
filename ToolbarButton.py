@@ -14,7 +14,7 @@ class ToolbarButton:
     
     def drawUI(self):
         # Set colors based on state
-        bgColor = 'black' if self.isHovering else 'white'
+        bgColor = rgb(78,78,78) if self.isHovering else 'white'
         textColor = 'white' if self.isHovering else 'black'
         if self.isSelected:
             bgColor = 'grey'
