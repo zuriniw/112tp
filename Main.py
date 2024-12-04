@@ -678,17 +678,21 @@ def onMouseRelease(app, mouseX, mouseY):
     
     ###### 2.  Node Connection Creation ######
     if app.draggingNode:
-        start_node = app.draggingNode
+        nodeA = app.draggingNode
         for component in app.components:
             for node in component.inputNodes + component.outputNodes:
-                if node.hitTest(mouseX, mouseY) and node != start_node:
+                if node.hitTest(mouseX, mouseY) and node != nodeA:
                     # Ensure one input and one output
-                    if start_node.isOutput != node.isOutput:
+                    if nodeA.isOutput != node.isOutput:
+                        startNode = nodeA if nodeA.isOutput else node
+                        endNode = nodeA if not nodeA.isOutput else node
                         # Create and setup new connection
-                        new_connection = Connections(start_node, node)
+                        new_connection = Connections(startNode, endNode)
                         new_connection.start_node.addConnection(new_connection)
                         new_connection.end_node.addConnection(new_connection)
                         app.connections.append(new_connection)
+
+
         
         # Reset node dragging state
         app.draggingNode = None

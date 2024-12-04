@@ -46,12 +46,18 @@ class Node:
                 connection.end_node.receiveValue(self.value)
 
     def addConnection(self, connection):
-        self.connections.append(connection)
+        
         if self.isOutput and self.value is not None:
             # 获取最新的计算结果
             current_value = self.component.calculate()
             self.value = current_value  # 更新自身的值
             connection.end_node.receiveValue(self.value)  # 传递给新连接的节点
+        elif not self.isOutput:
+            if self.connections:
+                self.connections = []
+
+        self.connections.append(connection)
+
 
     def removeConnection(self, connection):
         if connection in self.connections:
