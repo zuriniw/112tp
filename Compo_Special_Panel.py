@@ -7,7 +7,7 @@ class Panel(Component):
         outputs = []
         super().__init__(app)
         
-        self.name = 'Panel'
+        self.name = 'Create\nPanel\n[/]'
         self.inputs = inputs
         self.inputNodes = [Node(input_type, self, False) for input_type in inputs]
         

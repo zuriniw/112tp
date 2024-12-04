@@ -57,7 +57,7 @@ class Vector(TypicleComponent):
     def __init__(self, app):
         inputs = ['start', 'end']
         outputs = ['vector']
-        name = 'vector\n< >'
+        name = 'Create\nVector\n< >'
         
         self.isGeo = False
         self.isDisplay = False

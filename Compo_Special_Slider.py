@@ -28,6 +28,7 @@ class Slider(Component):
         self.current_precision_index = 1
         
         self.updateNodePositions()
+
     
     def getValue(self):
         precision = self.precision_options[self.current_precision_index]
@@ -53,7 +54,7 @@ class Slider1D(Slider):
         self.isPinned = False
         
         self.outputNodes[0].value = (min_val + max_val) / 2
-        
+        self.info = 'this is a \nslider\n move the handle'
         self.fields = {
             'nickname': self.nickname,
             'value': str(self.getValue()),

@@ -96,7 +96,18 @@ def onAppStart(app):
         'c': CircleCreator,
         'r': RectCreator,
         'p': Point,
-        '2': Slider2D
+        '2': Slider2D,
+        'v': Vector,
+        'm': Move
+
+    }
+
+    app.compoInfoMapping = {
+        CircleCreator: 'input:\n x,y,r\noutput:\n circle shape',
+        Point: 'input:\n x,y\noutput:\n point',
+        Vector: 'input:\n   -start: point(s)\n   -end: point(s)\n \noutput:\n   -vector(s)',
+        Move: 'input:\n geo,vector\noutput:\n moved geo',
+        # Add more component descriptions as needed
     }
     
     ## Toolbar Tabs
@@ -120,9 +131,14 @@ def onAppStart(app):
     app.editingField = 'nickname'  # 'nickname', 'min', or 'max'
     app.customInput = ''
     app.currCstmzSlider = None
-    
+
+    ## Right Click Toggle ##
     app.currGeoComponent = None
 
+    ## Hover Over Tool Bar ##
+    app.currCompInToolBar = None
+
+    ## pinned sliders ##
     app.pinnedSliders = []
     app.pinnedSliderHeight = 100
     app.currDraggingPinnedSlider = None
@@ -237,7 +253,6 @@ def drawCstmzingSliderPopUp(app):
             y_offset += 20
     
 def drawGeoComponentPopUp(app):
-    # 处理几何组件的弹出窗口
     if app.currGeoComponent in app.components and hasattr(app, 'currGeoComponent') and app.currGeoComponent:
         
         currComponent = app.currGeoComponent
@@ -279,7 +294,7 @@ def drawPinnedSliders(app):
 
 def drawMessage(app):
     dx = len(app.message) * 6
-    drawLabel(app.message, app.togglePanelStartX - dx, app.height - app.borderY*2)       
+    drawLabel(app.message, app.togglePanelStartX - app.paddingX, app.height - app.borderY*2, align = 'right')       
 
 def redrawAll(app):
     drawPlayground(app)
@@ -335,8 +350,36 @@ def redrawAll(app):
     
     if not app.isCompDisplay:
         drawPinnedSliders(app)
+    
+    if (not app.isDraggingNewComponent) and app.currCompInToolBar:
+        drawCurrCompoInToolBarInfo(app)
 
+#########
+def drawCurrCompoInToolBarInfo(app):
+    if not app.currCompInToolBar:
+        return
+    
+    x0, y0 = app.infoboxX, app.infoboxY
+    comp = app.currCompInToolBar
+    dy = app.paddingY+2
 
+    if comp in app.compoInfoMapping:
+        compInfo = app.compoInfoMapping[comp]
+        
+        textX0 = x0 + app.borderX
+        textY0 = y0 + app.borderY
+        
+        height = len(compInfo.splitlines()) * (dy) + app.borderY
+        width = 80
+
+        drawRect(x0, y0, width + 2*app.borderX, height, 
+            fill='white', border='black', borderWidth=2)
+        # Calculate box dimensions dynamically
+        lines = compInfo.splitlines()
+        for i, line in enumerate(lines):
+            textY = textY0 + i * dy
+            height += i * 12
+            drawLabel(line, textX0, textY, align = 'left')
 
 def onMouseMove(app, mouseX, mouseY):
     ###### 1. Update Mouse Position ######
@@ -352,6 +395,19 @@ def onMouseMove(app, mouseX, mouseY):
     ###### 3. Handle Button Hovering ######
     for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
+        # Check toolbar button hovering
+
+    for button in app.currButtomList:
+        if button.hitTest(mouseX, mouseY):
+            # Only set if not already set
+            if app.currCompInToolBar != button.component:
+                app.currCompInToolBar = button.component
+                app.infoboxX, app.infoboxY = button.x, button.y + 65
+            return
+
+    # Only reset if a button is no longer being hovered
+    if app.currCompInToolBar is not None:
+        app.currCompInToolBar = None
 
 
 def onMousePress(app, mouseX, mouseY, button):
@@ -510,11 +566,11 @@ def onMouseDrag(app, mouseX, mouseY):
     app.mouseX = mouseX
     app.mouseY = mouseY
     
-    ####### 1. Handle Drag Selection ######
+    ####### 1.  Drag Selection ######
     if app.isDragSelecting:
         app.dragFrameEnd = (mouseX, mouseY)
     
-    ####### 2. Handle Node Connection Dragging ######
+    ####### 2.  Node Connection Dragging ######
     elif app.draggingNode:
         # Create temporary visual connection line
         app.tempConnection = (app.draggingNode, mouseX, mouseY)
@@ -523,7 +579,7 @@ def onMouseDrag(app, mouseX, mouseY):
             for node in component.inputNodes:
                 node.isHovering = node.hitTest(mouseX, mouseY)
     
-    ####### 3. Handle Component Dragging ######
+    ####### 3.  Component Dragging ######
     elif app.currDraggingComponent:
         comp = app.currDraggingComponent
         
@@ -595,6 +651,11 @@ def keepWithinBounds(app, x, y, com):
     y = max(app.toolbarHeight + 2, min(y, app.height - com.height - 4))
     return x, y
 
+def getFirstTwoLines(text):
+    lines = text.splitlines()
+    firstTwoLines = lines[:2] if len(lines) >= 2 else lines
+    result = ' '.join(firstTwoLines)
+    return result
 
 def onMouseRelease(app, mouseX, mouseY):
     ###### 1.  New Component Creation ######
@@ -606,6 +667,9 @@ def onMouseRelease(app, mouseX, mouseY):
             newComponent.y = mouseY - newComponent.height/2
             app.components.append(newComponent)
             newComponent.updateNodePositions()
+            
+            messageName = getFirstTwoLines(newComponent.name)
+            app.message = f'A ^{messageName}^ added!'
         
         # Reset dragging state
         app.isDraggingNewComponent = False
