@@ -24,7 +24,7 @@ class Connections:
                 )
                 if not point_validation:
                     app.message = 'Wrong feed!'
-                    app.hintMessage = '[should feed in point(s)]'
+                    app.hintMessage = '[should feed in point(s), double click the connection to unwire]'
                     return False
             # 向量类型检查
             if end_value[0][0] == 'vector':
@@ -36,7 +36,7 @@ class Connections:
                 )
                 if not vector_validation:
                     app.message = 'Vector requires point input!'
-                    app.hintMessage = '[feed point(s) for vector]'
+                    app.hintMessage = '[feed point(s) for vector, double click the connection to unwire]'
                     return False
 
             # 圆形类型检查,这里需要修改，因为move里面谁都能进
@@ -48,7 +48,7 @@ class Connections:
                 )
                 if not circle_validation:
                     app.message = 'Circle requires numeric input!'
-                    app.hintMessage = '[feed numeric values]'
+                    app.hintMessage = '[feed numeric values, double click the connection to unwire]'
                     return False
 
         # 数值类型检查（单值或列表）
@@ -60,7 +60,7 @@ class Connections:
             )
             if not value_validation:
                 app.message = 'Invalid value input!'
-                app.hintMessage = '[requires numeric input]'
+                app.hintMessage = '[requires numeric input, double click the connection to unwire]'
                 return False
             
         print('pass the type check!')
