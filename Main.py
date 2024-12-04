@@ -176,7 +176,7 @@ def drawAxis(app):
 def drawGrid(app):
     if app.isGridDisplay:
         # Define grid parameters
-        gridSize = 30
+        gridSize = 40
         
         # Calculate grid counts from origin to edges
         rightGrids = int((app.togglePanelStartX - app.x0) // gridSize)
@@ -198,20 +198,20 @@ def drawGrid(app):
             
 def drawDot(app):
     if app.isDotDisplay:
-        gridSize = 30
+        gridSize = 40
         
         # Calculate grid counts from origin to edges
         rightGrids = int((app.togglePanelStartX - app.x0) // gridSize)
         leftGrids = int((app.x0 - app.borderX) // gridSize)
         upGrids = int((app.y0 - app.toolbarHeight) // gridSize)
         downGrids = int((app.height - app.y0) // gridSize)
-        
         # Draw dots at grid intersections
         for i in range(-leftGrids, rightGrids + 1):
             for j in range(-upGrids, downGrids + 1):
                 x = app.x0 + i * gridSize
                 y = app.y0 + j * gridSize
-                drawCircle(x, y, 1, fill='darkgrey')
+                #drawCircle(x, y, 1.5, fill='darkgrey')
+                drawLabel('+', x,y, fill = 'grey',size = 16, opacity = 30)
 
 
 def drawPlayground(app):
@@ -225,7 +225,7 @@ def drawDraggingFrame(app):
         if x2 != x1 and y2 != y1:
             drawRect(min(x1, x2), min(y1, y2),
                     abs(x2 - x1), abs(y2 - y1),
-                    fill='lightgrey', border = 'red', opacity=20, dashes = True)
+                    fill=rgb(228,234,230), border = rgb(71,230,121), opacity=40, dashes = True)
 
 def drawCstmzingSliderPopUp(app):
     currSlider = app.currCstmzSlider
@@ -698,8 +698,9 @@ def onMouseRelease(app, mouseX, mouseY):
                             if endNode.component.isGeo and endNode.component.name !='Vector\nPreview\n→':
                                 shapeName = endNode.component.outputNodes[0].value[0][0]
                                 shapeCount = len(endNode.component.outputNodes[0].value)
-                                if new_connection.isValid and shapeName != 'point'
+                                if new_connection.isValid and shapeName != 'point':
                                     app.message = f'{shapeCount} {shapeName}(s) be drawn successfully :-)'
+                                    app.hintMessage = 'Congrats! What about create more?'
                         app.connections.append(new_connection)
         
         # Reset node dragging state
@@ -763,10 +764,6 @@ def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
 
 
 def onKeyPress(app, key):
-    if key == 'backspace':
-        app.message = ';-)'
-        app.hintMessage = ''
-        app.secondHintMessage = ''
 
     ####### 1. Handle Custom Slider Interaction ######
     if app.currCstmzSlider:
@@ -858,8 +855,6 @@ def onKeyPress(app, key):
                     if pinnedSlider.original_slider == app.currCstmzSlider:
                         pinnedSlider.updateFields()
 
-
-
         elif key == 'escape':
             # Exit editing without saving changes
             app.currCstmzSlider = None
@@ -871,7 +866,7 @@ def onKeyPress(app, key):
         elif len(key) == 1:  # Single character input
             app.customInput += key
 
-    ####### 2. Handle Geometric Component Interaction ######
+    ####### 2.  Geometric Component Interaction ######
     elif hasattr(app, 'currGeoComponent') and app.currGeoComponent:
         if key == 'tab':
             # Toggle the display state of the component
@@ -882,11 +877,12 @@ def onKeyPress(app, key):
             app.currGeoComponent = None
             app.editingField = 'nickname'
 
-    ####### 3. Handle General Keypress Actions ######
+    ####### 3.  General Keypress Actions ######
     else:
         if key in app.component_map:
         # Use the mapped class to create and append the component
             create_and_append_component(app.component_map[key], app)
+            
 
         elif key in ['backspace', 'delete']:
             # Delete selected components
@@ -894,15 +890,23 @@ def onKeyPress(app, key):
                 for compo in app.selectedCompo:
                     compo.deleteComponent(app)
                 app.selectedCompo = []  # Clear the selection
+            else:
+                app.message = ';-)'
+                app.hintMessage = ''
+                app.secondHintMessage = ''
 
 def create_and_append_component(component_class, app):
     # Create a new component instance
-    new_component = component_class(app)
+    newComponent = component_class(app)
     # Update node positions if the method exists
-    if hasattr(new_component, 'updateNodePositions'):
-        new_component.updateNodePositions()
+    if hasattr(newComponent, 'updateNodePositions'):
+        newComponent.updateNodePositions()
     # Append the component to the app's component list
-    app.components.append(new_component)
+    app.components.append(newComponent)
+    messageName = getFirstTwoLines(newComponent.name)
+    app.message = f'A ^{messageName}^ added ;-)'
+    app.hintMessage = 'Whoo why not wire them together?' if len(app.components)==2 else "Great! We already have one  ;-) let's invite another component"
+
 
 def main():
     runApp()
