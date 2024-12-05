@@ -447,7 +447,7 @@ class PinnedSlider2D(Slider2D):
         drawLabel(f'({x_val}, {y_val})', handleX, y - 10)
         # nickname
         if self.original_slider.nickname:
-            drawLabel(f'[ {self.original_slider.nickname} ]',x + self.width - self.width/2, y + self.height + 12,size=12)
+            drawLabel(f'[ {self.original_slider.nickname} ]',x + self.width, y + self.height + 12,size=12, align = 'right')
         # button stuff
         r = self.recordButton.r
         y1 = y+app.paddingY/2+self.recordButton.r+self.height

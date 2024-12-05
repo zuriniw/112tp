@@ -98,7 +98,8 @@ def onAppStart(app):
         'p': Point,
         '2': Slider2D,
         'v': Vector,
-        'm': Move
+        'm': Move,
+        'd': Distance
 
     }
     
@@ -560,7 +561,7 @@ def onMousePress(app, mouseX, mouseY, button):
                     return
                 elif slider.playButton.hitTest(mouseX, mouseY) and not slider.isSliderRecording:
                     slider.isSliderPlaying = not slider.isSliderPlaying
-                    app.message = 'Nice try! PRESS ► again to stop'
+                    app.message = 'Nice try! PRESS  ll  to stop and PRESS  ●  to start a new recording'
                     app.hintMessage = 'I bet it is the best animation I v ever seen...'
 
     ####### 5. Slider Customization Interaction ######

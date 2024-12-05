@@ -119,7 +119,7 @@ class Vector(TypicleComponent):
 class VectorPreview(TypicleComponent):
     def __init__(self, app):
         inputs = ['vector', 'anchor']
-        outputs = ['']  # Empty string for no output
+        outputs = ['']  # no outputs
         name = 'Vector\nPreview\n~'
         self.isGeo = True
         self.isDisplay = True
@@ -147,7 +147,7 @@ class VectorPreview(TypicleComponent):
                 for anchor in anchor_val:
                     dx, dy = vector[1]
                     x0, y0 = getDrawingPoint(self.x0, self.y0,anchor[1])
-                    x1, y1 = x0 + dx, y0 + dy
+                    x1, y1 = x0 + dx, y0 - dy
                     drawLine(x0, y0, x1, y1, fill=rgb(218, 231, 231), arrowEnd=True, visible=self.isDisplay)
 
 

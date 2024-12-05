@@ -16,16 +16,16 @@ def getDrawingPoint(x0,y0,worldPoint):
     return drawingPoint
 
 ## HELPER: takes in 2 symmentric lists and align the len of them
-def alignLists(L, M, default_value=None):
+def alignLists(L, M):
     L = [L] if not isinstance(L, list) else L
     M = [M] if not isinstance(M, list) else M
     # L shorter, extend it
     if len(L) < len(M):
-        last_item = L[-1] if L else default_value
+        last_item = L[-1]
         L.extend([last_item] * (len(M) - len(L)))
     # M shorter, extend it
     elif len(M) < len(L):
-        last_item = M[-1] if M else default_value
+        last_item = M[-1]
         M.extend([last_item] * (len(L) - len(M)))
     return L, M
 
@@ -63,7 +63,7 @@ class CircleCreator(TypicleComponent):
         radius_val = self.inputNodes[1].value
         isGradFill = True if self.inputNodes[2].value == 1 else False
 
-        point_val, radius_val = alignLists(point_val, radius_val, default_value=['point', (self.app.x0, self.app.y0)])
+        point_val, radius_val = alignLists(point_val, radius_val)
         
         circles = []
         for point, radius in zip(point_val, radius_val):
