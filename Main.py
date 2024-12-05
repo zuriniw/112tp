@@ -168,6 +168,9 @@ def onAppStart(app):
     app.hintMessage = "DRAG-&-DROP a component from toolbar. Let's go!"
     app.secondHintMessage = 'press [BACKSPACE] to temporary block, or [TOGGLE OFF] me on the right panel'
 
+    app.isSliderPlaying = False
+    app.isSliderRecording = False
+
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
     app.currButtomList = [ToolbarButton(app, app.borderX + currbuttomCompoList.index(buttomCompo) * (60 + app.paddingX), 40, buttomCompo) for buttomCompo in currbuttomCompoList]
@@ -546,18 +549,19 @@ def onMousePress(app, mouseX, mouseY, button):
         elif not app.isCompDisplay:
             # Check if a pinned slider handle is clicked
             for slider in app.pinnedSliders:
-                i = app.pinnedSliders.index(slider)  # Get slider index
-                x = 3 * app.borderX + 180 * i  # Calculate slider position
-                
-                baseY = app.height - app.pinnedSliderHeight + app.borderY*2
-                if isinstance(slider, PinnedSlider2D):
-                    y = baseY - app.borderY*7 - 4  # 调整2D滑块的整体位置
-                else:
-                    y = baseY
-                
                 if slider.hitTestHandle(mouseX, mouseY):
                     app.currDraggingPinnedSlider = slider
                     return
+                if slider.recordButton.hitTest(mouseX, mouseY) and not slider.isSliderPlaying:
+                    slider.isSliderRecording = not slider.isSliderRecording
+                    return
+                elif slider.playButton.hitTest(mouseX, mouseY) and not slider.isSliderRecording:
+                    slider.isSliderPlaying = not slider.isSliderPlaying
+                    
+
+                    
+            
+            
 
     ####### 5. Slider Customization Interaction ######
     # Handle right mouse button interaction

@@ -377,6 +377,8 @@ class PinnedSlider2D(Slider2D):
         self.playButton = SliderButton(app, 'Play', self, self.x, self.y)
         self.buttons = [self.recordButton, self.playButton]
         self.x, self.y = x, y
+        self.isSliderRecording = False
+        self.isSliderPlaying = False
 
 
 
@@ -485,10 +487,23 @@ class SliderButton:
         return distance <= self.r
 
     def drawUI(self, app, x, y):
-        # Update colors based on hover state
-        self.x, self.y = x, y 
-        textColor = 'white' if self.isHovering else 'black'
+        self.x, self.y = x, y
         bgColor = 'black' if self.isHovering else 'white'
-        drawCircle(x, y, self.r, fill= bgColor, border='black')
-        drawLabel(self.symbol, x, y, fill=textColor, size=12)
-        
+        if self.name == 'Play':
+            borderColor = 'purple' if self.slider.isSliderPlaying else 'black'
+            drawCircle(x, y, self.r, fill=bgColor, border=borderColor)
+            if self.isHovering:
+                drawLabel(self.symbol, x, y, fill='white', size=12)
+            else:
+                drawLabel(self.symbol, x, y, fill=borderColor, size=12)
+            
+        elif self.name == 'Record':
+            borderColor = 'green' if self.slider.isSliderRecording else 'black'
+            drawCircle(x, y, self.r, fill=bgColor, border=borderColor)
+            if self.isHovering:
+                drawLabel(self.symbol, x, y, fill='white', size=12)
+            else:
+                drawLabel(self.symbol, x, y, fill=borderColor, size=12)
+
+
+    
