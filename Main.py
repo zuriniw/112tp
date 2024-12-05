@@ -555,13 +555,18 @@ def onMousePress(app, mouseX, mouseY, button):
                 if slider.recordButton.hitTest(mouseX, mouseY) and not slider.isSliderPlaying:
                     if slider.isSliderRecording == True:
                         slider.isSliderRecording = False
-                        print(slider.store)
+                        app.message = 'STOP Recording '
+                        app.hintMessage = 'PRESS the ► ! cannot wait to watch it'
                     else:
                         slider.isSliderRecording = True
                         slider.store = []       # 当重新开始一次录制的时候，会清空之前存的东西
+                        app.message = 'START Recording '
+                        app.hintMessage = 'PRESS the ● button again to stop'
                     return
                 elif slider.playButton.hitTest(mouseX, mouseY) and not slider.isSliderRecording:
                     slider.isSliderPlaying = not slider.isSliderPlaying
+                    app.message = 'Nice try! PRESS ► again to stop'
+                    app.hintMessage = 'I bet it is the best animation I v ever seen...'
                     
 
                     
@@ -950,7 +955,7 @@ def create_and_append_component(component_class, app):
     app.components.append(newComponent)
     messageName = getFirstTwoLines(newComponent.name)
     app.message = f'A ^{messageName}^ added ;-)'
-    app.hintMessage = 'Whoo why not wire them together?' if len(app.components)==2 else "Great! We already have one  ;-) let's invite another component"
+    app.hintMessage = 'Whoo why not wire them together?' if len(app.components)==2 else "Nice try ;-) let's invite another component"
 
 
 def main():
