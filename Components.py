@@ -1,10 +1,11 @@
 '''
-- COMPONENT
-    - TYPICAL COMPONENT
+- Component
+    - TypicleComponent
 '''
 
 from cmu_graphics import *
 from Node import *
+
 ########################################################################################
 # COMPONENT is the most basic class of compo: 
 #       1.set the birthplace

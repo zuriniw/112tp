@@ -94,8 +94,7 @@ class Connections:
         if length == 0:
             return False
             
-        t = max(0, min(1, ((mouseX - x1) * (x2 - x1) + 
-                          (mouseY - y1) * (y2 - y1)) / (length ** 2)))
+        t = max(0, min(1, ((mouseX - x1) * (x2 - x1) + (mouseY - y1) * (y2 - y1)) / (length ** 2)))
         
         px = x1 + t * (x2 - x1)
         py = y1 + t * (y2 - y1)

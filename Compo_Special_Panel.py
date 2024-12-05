@@ -50,9 +50,7 @@ class Panel(Component):
             self.height = self.app.borderY * 2.2 + label_count * line_height
 
         # Draw background
-        drawRect(self.x, self.y, self.width, self.height,
-                fill='white' if not self.isSelected else 'lightGrey',
-                border='black')
+        drawRect(self.x, self.y, self.width, self.height, fill='white' if not self.isSelected else 'lightGrey', border='black')
 
         # Draw value
         if self.value is not None:

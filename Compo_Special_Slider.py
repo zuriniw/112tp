@@ -107,29 +107,23 @@ class Slider1D(Slider):
         return self.getValue()
     
     def hitTestHandle(self, mouseX, mouseY):
-        handleX = self.x + ((self.getValue() - self.min_val) / 
-                           (self.max_val - self.min_val)) * (self.width - self.handleWidth)
-        return (handleX <= mouseX <= handleX + self.handleWidth and 
-                self.y <= mouseY <= self.y + self.height)
+        handleX = self.x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * (self.width - self.handleWidth)
+        return (handleX <= mouseX <= handleX + self.handleWidth and self.y <= mouseY <= self.y + self.height)
     
     def drawUI(self):
         for node in self.outputNodes:
             node.drawNode()
             
-        drawRect(self.x, self.y, self.width, self.height, 
-                fill='white' if not self.isSelected else 'lightGrey', 
-                border='black')
+        drawRect(self.x, self.y, self.width, self.height, fill='white' if not self.isSelected else 'lightGrey', border='black')
         
-        handleX = self.x + ((self.getValue() - self.min_val) / 
-                           (self.max_val - self.min_val)) * (self.width-self.handleWidth)
+        handleX = self.x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * (self.width-self.handleWidth)
         drawRect(handleX, self.y, self.handleWidth, self.height, fill='black')
         
         drawLabel(f'{self.getValue()}', handleX, self.y - 10)
         
         if self.nickname:
             appendix = ' ^ ' if self.isPinned else ''
-            drawLabel(f'[ {self.nickname} ]'+ appendix, 
-                     self.x + self.width/2, self.y+self.height+8, size=12)
+            drawLabel(f'[ {self.nickname} ]'+ appendix, self.x + self.width/2, self.y+self.height+8, size=12)
 
     def handleDrag(self, mouseX, mouseY):
         normalized_x = (mouseX - self.x) / self.width
@@ -186,8 +180,7 @@ class PinnedSlider1D(Slider):
     def hitTestHandle(self, mouseX, mouseY):
         x,y = self.x, self.y
         trackY = y + self.height/2
-        handleX = x + ((self.getValue() - self.min_val) / 
-                      (self.max_val - self.min_val)) * self.width
+        handleX = x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * self.width
         handleRadius = 7
         distance = ((mouseX - handleX)**2 + (mouseY - trackY)**2)**0.5
         return distance <= handleRadius
@@ -195,24 +188,20 @@ class PinnedSlider1D(Slider):
     def drawTwinUI(self, app):
         x,y = self.x, self.y
         trackY = y + self.height/2
-        drawLine(x, trackY, x + self.width, trackY,
-                fill='black', lineWidth=2)
+        drawLine(x, trackY, x + self.width, trackY, fill='black', lineWidth=2)
         
         # draw the small lines
         for i in range(11):
             tickX = x + (i / 10) * self.width
-            drawLine(tickX, trackY - 2.5, tickX, trackY + 2.5,
-                    fill='black', lineWidth=1)
+            drawLine(tickX, trackY - 2.5, tickX, trackY + 2.5, fill='black', lineWidth=1)
         # draw the handle
-        handleX = x + ((self.getValue() - self.min_val) / 
-                      (self.max_val - self.min_val)) * self.width
+        handleX = x + ((self.getValue() - self.min_val) / (self.max_val - self.min_val)) * self.width
         drawCircle(handleX, trackY, 7, fill='white', border='black')
         
         # draw the value and nickname
         drawLabel(f'{self.getValue()}', handleX, y - 5, size=12)
         if self.original_slider.nickname:
-            drawLabel(f'[ {self.original_slider.nickname} ]',
-                     x + self.width/2, y + self.height + 12, size=12)
+            drawLabel(f'[ {self.original_slider.nickname} ]', x + self.width/2, y + self.height + 12, size=12)
             
 ########################################################################################
 # SLIDER 2D
@@ -286,10 +275,10 @@ class Slider2D(Slider):
         
         # pinned sync
         if self.isPinned:
-            for pinned_slider in self.app.pinnedSliders:
-                if pinned_slider.original_slider == self:
-                    pinned_slider.outputNodes[0].value = processed_x
-                    pinned_slider.outputNodes[1].value = processed_y
+            for pinnedSlider in self.app.pinnedSliders:
+                if pinnedSlider.original_slider == self:
+                    pinnedSlider.outputNodes[0].value = processed_x
+                    pinnedSlider.outputNodes[1].value = processed_y
 
     def updateFields(self):
         x_val, y_val = self.getValues()
@@ -317,10 +306,8 @@ class Slider2D(Slider):
 
     def hitTestHandle(self, mouseX, mouseY):
         x_val, y_val = self.getValues()
-        handleX = self.x + ((x_val - self.min_val) / 
-                        (self.max_val - self.min_val)) * self.width
-        handleY = self.y + (1 - (y_val - self.min_val) / 
-                        (self.max_val - self.min_val)) * self.height
+        handleX = self.x + ((x_val - self.min_val) / (self.max_val - self.min_val)) * self.width
+        handleY = self.y + (1 - (y_val - self.min_val) / (self.max_val - self.min_val)) * self.height
         
         return (abs(mouseX - handleX) <= self.handleSize/2 and 
                 abs(mouseY - handleY) <= self.handleSize/2)
@@ -330,39 +317,27 @@ class Slider2D(Slider):
         for node in self.outputNodes:
             node.drawNode()
         # background
-        drawRect(self.x, self.y, self.width, self.height, 
-                fill='white' if not self.isSelected else 'lightGrey',
-                border='black')
+        drawRect(self.x, self.y, self.width, self.height, fill='white' if not self.isSelected else 'lightGrey',border='black')
         # grid
         for i in range(1, 10):
             lineX = self.x + (i/10) * self.width
             lineY = self.y + (i/10) * self.height
-            drawLine(lineX, self.y, lineX, self.y + self.height,
-                    fill='lightGray', lineWidth=1)
-            drawLine(self.x, lineY, self.x + self.width, lineY,
-                    fill='lightGray', lineWidth=1) 
+            drawLine(lineX, self.y, lineX, self.y + self.height, fill='lightGray', lineWidth=1)
+            drawLine(self.x, lineY, self.x + self.width, lineY, fill='lightGray', lineWidth=1) 
         # handler
         x_val, y_val = self.getValues()
       
-        handleX = self.x + ((x_val - self.min_val) / 
-                        (self.max_val - self.min_val)) * self.width
-        handleY = self.y + (1 - (y_val - self.min_val) / 
-                        (self.max_val - self.min_val)) * self.height
-        drawLine(handleX, self.y, handleX, self.y + self.height,
-                fill='black', lineWidth=1, opacity=50)
-        drawLine(self.x, handleY, self.x + self.width, handleY,
-                fill='black', lineWidth=1, opacity=50)
-        drawRect(handleX - self.handleSize/2, handleY - self.handleSize/2,
-                self.handleSize, self.handleSize,
-                fill='black')
+        handleX = self.x + ((x_val - self.min_val) / (self.max_val - self.min_val)) * self.width
+        handleY = self.y + (1 - (y_val - self.min_val) / (self.max_val - self.min_val)) * self.height
+        drawLine(handleX, self.y, handleX, self.y + self.height,fill='black', lineWidth=1, opacity=50)
+        drawLine(self.x, handleY, self.x + self.width, handleY,fill='black', lineWidth=1, opacity=50)
+        drawRect(handleX - self.handleSize/2, handleY - self.handleSize/2,self.handleSize, self.handleSize,fill='black')
         # corodinate
         drawLabel(f'({x_val}, {y_val})', handleX, self.y - 10)   
         # nickname
         if self.nickname:
             appendix = ' ^ ' if self.isPinned else ''
-            drawLabel(f'[ {self.nickname} ]'+ appendix,
-                     self.x + self.width/2, self.y + self.height + 12,
-                     size=12)          
+            drawLabel(f'[ {self.nickname} ]'+ appendix,self.x + self.width/2, self.y + self.height + 12,size=12)          
         # frame
         drawRect(self.x, self.y, self.width, self.height, fill= None, border='black')
         
@@ -445,47 +420,34 @@ class PinnedSlider2D(Slider2D):
     def hitTestHandle(self, mouseX, mouseY):
         x,y = self.x, self.y
         x_val, y_val = self.getValues()
-        handleX = x + ((x_val - self.min_val) / 
-                    (self.max_val - self.min_val)) * self.width
-        handleY = y + (1-(y_val - self.min_val) / 
-                    (self.max_val - self.min_val)) * self.height
+        handleX = x + ((x_val - self.min_val) / (self.max_val - self.min_val)) * self.width
+        handleY = y + (1-(y_val - self.min_val) / (self.max_val - self.min_val)) * self.height
         distance = ((mouseX - handleX)**2 + (mouseY - handleY)**2)**0.5
         return distance <= self.handleSize/2
 
     def drawTwinUI(self, app):
         x,y = self.x, self.y
         # background
-        drawRect(x, y, self.width, self.height,
-                fill='white', border='black')      
+        drawRect(x, y, self.width, self.height, fill='white', border='black')      
         # grid
         for i in range(1, 10):
             lineX = x + (i/10) * self.width
             lineY = y + (i/10) * self.height
-            drawLine(lineX, y, lineX, y + self.height,
-                    fill='lightGray', lineWidth=0.5)
-            drawLine(x, lineY, x + self.width, lineY,
-                    fill='lightGray', lineWidth=0.5)       
+            drawLine(lineX, y, lineX, y + self.height, fill='lightGray', lineWidth=0.5)
+            drawLine(x, lineY, x + self.width, lineY, fill='lightGray', lineWidth=0.5)       
         # handle
         x_val, y_val = self.getValues()
-        handleX = x + ((x_val - self.min_val) / 
-                   (self.max_val - self.min_val)) * self.width
-        handleY = y + (1-(y_val - self.min_val) / 
-               (self.max_val - self.min_val)) * self.height
+        handleX = x + ((x_val - self.min_val) / (self.max_val - self.min_val)) * self.width
+        handleY = y + (1-(y_val - self.min_val) / (self.max_val - self.min_val)) * self.height
         # crossing
-        drawLine(handleX, y, handleX, y + self.height,
-                fill='black', lineWidth=1, opacity=30)
-        drawLine(x, handleY, x + self.width, handleY,
-                fill='black', lineWidth=1, opacity=30)
-        
-        drawCircle(handleX, handleY, self.handleSize/2,
-                fill='white', border='black')
+        drawLine(handleX, y, handleX, y + self.height, fill='black', lineWidth=1, opacity=30)
+        drawLine(x, handleY, x + self.width, handleY, fill='black', lineWidth=1, opacity=30)
+        drawCircle(handleX, handleY, self.handleSize/2, fill='white', border='black')
         #label
         drawLabel(f'({x_val}, {y_val})', handleX, y - 10)
         # nickname
         if self.original_slider.nickname:
-            drawLabel(f'[ {self.original_slider.nickname} ]',
-                    x + self.width/2, y + self.height + 12,
-                    size=12)
+            drawLabel(f'[ {self.original_slider.nickname} ]',x + self.width - self.width/2, y + self.height + 12,size=12)
         # button stuff
         r = self.recordButton.r
         y1 = y+app.paddingY/2+self.recordButton.r+self.height

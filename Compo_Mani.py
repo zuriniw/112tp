@@ -14,7 +14,7 @@ def getDrawingPoint(x0,y0,worldPoint):
     drawingPoint = (dx, dy)
     return drawingPoint
 
-## HELPER: take in world cdnt and give back drawing cdnt for drawing
+## HELPER: takes in 2 symmentric lists and align the len of them
 def alignLists(L, M, default_value=None):
     L = [L] if not isinstance(L, list) else L
     M = [M] if not isinstance(M, list) else M

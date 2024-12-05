@@ -63,9 +63,7 @@ class CircleCreator(TypicleComponent):
         radius_val = self.inputNodes[1].value
         isGradFill = True if self.inputNodes[2].value == 1 else False
 
-        point_val, radius_val = alignLists(point_val, radius_val, 
-                                            default_value=['point', (self.app.x0, self.app.y0)])
-        
+        point_val, radius_val = alignLists(point_val, radius_val, default_value=['point', (self.app.x0, self.app.y0)])
         
         circles = []
         for point, radius in zip(point_val, radius_val):
@@ -83,8 +81,7 @@ class CircleCreator(TypicleComponent):
             for circle in circles:
                     x, y = getDrawingPoint(self.x0, self.y0, circle[1])
                     radius = circle[2]
-                    drawCircle(x, y, radius,
-                                border=None if self.isGradFill else 'blue',
+                    drawCircle(x, y, radius, border=None if self.isGradFill else 'blue',
                                 fill=gradient('blue', 'white') if self.isGradFill else None,
                                 visible=self.isDisplay)
                               
@@ -142,7 +139,4 @@ class RectCreator(TypicleComponent):
                 height = rect[3]
                 
                 if int(width) != 0 and int(height) != 0:
-                    drawRect(x, y, width, height,
-                             fill=None, 
-                             border='blue', 
-                             visible=self.isDisplay)
+                    drawRect(x, y, width, height, fill=None, border='blue', visible=self.isDisplay)
