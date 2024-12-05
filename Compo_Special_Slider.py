@@ -365,15 +365,15 @@ class PinnedSlider2D(Slider2D):
                         name=original_slider.name,
                         min_val=original_slider.min_val,
                         max_val=original_slider.max_val)
-        self.oriSlider = original_slider
+        self.original_slider = original_slider
         self.outputNodes[0].value = original_slider.getValues()[0]
         self.outputNodes[1].value = original_slider.getValues()[1]
         self.current_precision_index = original_slider.current_precision_index
         
     def syncWithOriginal(self):
-        self.min_val = self.oriSlider.min_val
-        self.max_val = self.oriSlider.max_val
-        self.current_precision_index = self.oriSlider.current_precision_index
+        self.min_val = self.original_slider.min_val
+        self.max_val = self.original_slider.max_val
+        self.current_precision_index = self.original_slider.current_precision_index
         # in domain
         x_val, y_val = self.getValues()
         new_x = max(self.min_val, min(self.max_val, x_val))
@@ -388,19 +388,19 @@ class PinnedSlider2D(Slider2D):
         
         self.outputNodes[0].value = processed_x
         self.outputNodes[1].value = processed_y
-        self.oriSlider.outputNodes[0].value = processed_x
-        self.oriSlider.outputNodes[1].value = processed_y
+        self.original_slider.outputNodes[0].value = processed_x
+        self.original_slider.outputNodes[1].value = processed_y
         
         # update fields
-        self.oriSlider.fields.update({
+        self.original_slider.fields.update({
             'x': str(processed_x),
             'y': str(processed_y)
         })
         
         # broadcast
-        for connection in self.oriSlider.outputNodes[0].connections:
+        for connection in self.original_slider.outputNodes[0].connections:
             connection.end_node.receiveValue(processed_x)
-        for connection in self.oriSlider.outputNodes[1].connections:
+        for connection in self.original_slider.outputNodes[1].connections:
             connection.end_node.receiveValue(processed_y)
 
     def calculate(self):
@@ -444,7 +444,7 @@ class PinnedSlider2D(Slider2D):
         #label
         drawLabel(f'({x_val}, {y_val})', handleX, y - 10)
         # nickname
-        if self.oriSlider.nickname:
-            drawLabel(f'[ {self.oriSlider.nickname} ]',
+        if self.original_slider.nickname:
+            drawLabel(f'[ {self.original_slider.nickname} ]',
                     x + self.width/2, y + self.height + 12,
                     size=12)

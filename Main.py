@@ -18,7 +18,7 @@ import time
 
 def onAppStart(app):
     ## Window Settings
-    app.width = 1512
+    app.width = 988
     app.height = 982
     app.mouseX = app.width/2
     app.mouseY = app.height/2
@@ -105,7 +105,7 @@ def onAppStart(app):
 
     app.compoInfoMapping = {
         Vector: f"input:\n -start: geo point(s)\n -end: geo point(s)\n \noutput:\n -vector(s)\n{'-'*24}\nVector is invisable!\n\nFeed it in [Move Geo]\nOr use [Vect Preview]\nto have a look;-)",
-        Point: f"input:\n -x: num(s)\n -y: num(s)\n \noutput:\n -geo point(s)\n{'-'*24}\npoint is the mother of\nalmost anything here\neg: Geometry, Vector,\n ..., except number(s)\n who is the grandma",
+        Point: f"input:\n -x: num(s)\n -y: num(s)\n \noutput:\n -geo point(s)\n{'-'*24}\npoint is the mother of\nalmost anything here\neg: Geometry, Vector,\n ..., except number\n who is the grandma!",
         VectorPreview: 'input:\n -vector: vector(s)\n -anchor: geo point(s)\n \noutput:\n -none',
         CircleCreator: 'input:\n -point: geo point(s)\n -radius: num(s)\n -isGradFill: boolean\n \noutput:\n -circle(s)',
         RectCreator: 'input:\n -point: geo point(s)\n -width: num(s)\n -height: num(s)\n \noutput:\n -rect(s)',
