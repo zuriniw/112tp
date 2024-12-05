@@ -1,11 +1,11 @@
 '''
-SLIDER is for dragging to create single value/value pairs: 
 - Component:  
   - Slider:
       - Slider1D
            - PinnedSlider1D
       - Slider2D
            - PinnedSlider2D
+- Slider buttons
 '''
 from Components import Component
 from cmu_graphics import *
@@ -15,6 +15,10 @@ def processValueWithPrecision(value, precision_value):
     if precision_value == 0.1:
         return float(f"{value:.1f}")
     return int(value / precision_value + 0.5) * precision_value
+
+########################################################################################
+# SLIDER
+########################################################################################
 
 class Slider(Component):
     def __init__(self, app, name='Slider'):
@@ -50,7 +54,10 @@ class Slider(Component):
         for connection in self.outputNodes[0].connections:
             connection.end_node.receiveValue(processed_value)
 
-
+########################################################################################
+# SLIDER 1D
+# output representation: v
+########################################################################################
 
 class Slider1D(Slider):
     def __init__(self, app, name='Slider\n1D\n<-->', min_val=-200, max_val=200):
@@ -131,6 +138,10 @@ class Slider1D(Slider):
 
         self.updateValue(newValue)
 
+########################################################################################
+# PINNED SLIDER 1D
+########################################################################################
+
 class PinnedSlider1D(Slider):
     def __init__(self, app, original_slider, x,y):
         super().__init__(app, original_slider.name)
@@ -202,6 +213,11 @@ class PinnedSlider1D(Slider):
         if self.original_slider.nickname:
             drawLabel(f'[ {self.original_slider.nickname} ]',
                      x + self.width/2, y + self.height + 12, size=12)
+            
+########################################################################################
+# SLIDER 2D
+# output representation: v1; v1
+########################################################################################
 
 class Slider2D(Slider):
     def __init__(self, app, name='Slider\n2D\n<-|->', min_val=-100, max_val=100):
@@ -239,7 +255,6 @@ class Slider2D(Slider):
             'pin': self.isPinned
         }
         
-
     def getValues(self):
         precision = self.precision_options[self.current_precision_index]
         return (processValueWithPrecision(self.outputNodes[0].value, precision),
@@ -368,7 +383,9 @@ class Slider2D(Slider):
         
         self.updateValue(newX, newY)
 
-
+########################################################################################
+# PINNED SLIDER 2D
+########################################################################################
 
 class PinnedSlider2D(Slider2D):
     def __init__(self, app, original_slider, x, y):
@@ -475,7 +492,11 @@ class PinnedSlider2D(Slider2D):
 
         self.recordButton.drawUI(app, x+r+2, y1)
         self.playButton.drawUI(app, x+2+2*r+app.paddingX*3, y1)
-        
+
+########################################################################################
+# SLIDER BUTTON
+########################################################################################
+
 class SliderButton:
     def __init__(self, app, name, slider,x,y):
         self.r = 12

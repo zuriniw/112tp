@@ -1,7 +1,13 @@
+'''
+- Component
+    - TypicleComponent
+        - CircleCreator
+        - RectCreator
+'''
 from cmu_graphics import *
 from Components import TypicleComponent
 
-## take in world cdnt and give back drawing cdnt for drawing
+## HELPER: take in world cdnt and give back drawing cdnt for drawing
 def getDrawingPoint(x0,y0,worldPoint):
     wx, wy = worldPoint
     dx = wx + x0
@@ -9,23 +15,24 @@ def getDrawingPoint(x0,y0,worldPoint):
     drawingPoint = (dx, dy)
     return drawingPoint
 
-def align_lists(list1, list2, default_value=None):
-    # ensure the input is a lsit
-    list1 = [list1] if not isinstance(list1, list) else list1
-    list2 = [list2] if not isinstance(list2, list) else list2
-    
-    # list1 shorter, extend it
-    if len(list1) < len(list2):
-        last_item = list1[-1] if list1 else default_value
-        list1.extend([last_item] * (len(list2) - len(list1)))
-    
-    # list 2 shorter, extend it
-    elif len(list2) < len(list1):
-        last_item = list2[-1] if list2 else default_value
-        list2.extend([last_item] * (len(list1) - len(list2)))
-    
-    return list1, list2
+## HELPER: takes in 2 symmentric lists and align the len of them
+def alignLists(L, M, default_value=None):
+    L = [L] if not isinstance(L, list) else L
+    M = [M] if not isinstance(M, list) else M
+    # L shorter, extend it
+    if len(L) < len(M):
+        last_item = L[-1] if L else default_value
+        L.extend([last_item] * (len(M) - len(L)))
+    # M shorter, extend it
+    elif len(M) < len(L):
+        last_item = M[-1] if M else default_value
+        M.extend([last_item] * (len(L) - len(M)))
+    return L, M
 
+########################################################################################
+# CIRCLE CREATOR
+# output representation: ['cir', (x, y), r]
+########################################################################################
 
 class CircleCreator(TypicleComponent):
     def __init__(self, app):
@@ -56,7 +63,7 @@ class CircleCreator(TypicleComponent):
         radius_val = self.inputNodes[1].value
         isGradFill = True if self.inputNodes[2].value == 1 else False
 
-        point_val, radius_val = align_lists(point_val, radius_val, 
+        point_val, radius_val = alignLists(point_val, radius_val, 
                                             default_value=['point', (self.app.x0, self.app.y0)])
         
         
@@ -81,7 +88,11 @@ class CircleCreator(TypicleComponent):
                                 fill=gradient('blue', 'white') if self.isGradFill else None,
                                 visible=self.isDisplay)
                               
-                        
+########################################################################################
+# RECT CREATOR
+# output representation: ['rect', (x, y), w, h]
+########################################################################################
+                  
 class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['point', 'width', 'height']

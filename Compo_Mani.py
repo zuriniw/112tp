@@ -1,3 +1,8 @@
+'''
+- Component
+    - TypicleComponent
+        - Move
+'''
 from cmu_graphics import *
 from Components import TypicleComponent
 
@@ -8,6 +13,22 @@ def getDrawingPoint(x0,y0,worldPoint):
     dy = y0 - wy
     drawingPoint = (dx, dy)
     return drawingPoint
+
+## HELPER: take in world cdnt and give back drawing cdnt for drawing
+def alignLists(L, M, default_value=None):
+    L = [L] if not isinstance(L, list) else L
+    M = [M] if not isinstance(M, list) else M
+    if len(L) < len(M):
+        last_item = L[-1] if L else default_value
+        L.extend([last_item] * (len(M) - len(L)))
+    elif len(M) < len(L):
+        last_item = M[-1] if M else default_value
+        M.extend([last_item] * (len(L) - len(M)))
+
+########################################################################################
+# PANEL is for reveal the value of any outputNode 
+# output representation: same as its input
+########################################################################################
 
 class Move(TypicleComponent):
     def __init__(self, app):
@@ -46,7 +67,6 @@ class Move(TypicleComponent):
             for vect in vector_val:
                 # Get the vector displacement
                 dx, dy = vect[1]  # vector format is ['vector', (dx,dy)]
-            
                 if currShape == 'cir':
                     r = geo[2]
                     moved_geos.append(['cir', (x + dx, y + dy), r])
@@ -73,9 +93,7 @@ class Move(TypicleComponent):
                 
             for geo in moved_geos:
                 shape_type = geo[0]
-                #######
                 gx, gy = getDrawingPoint(self.x0, self.y0,geo[1])
-
                 if shape_type == 'cir':
                     r = geo[2]
                     if int(r) != 0:
@@ -93,18 +111,5 @@ class Move(TypicleComponent):
                     vx = gx - vx0
                     vy = gy + vy0
                     drawLine(vx, vy, gx, gy, fill='lightBlue', dashes=True, visible=self.isDisplay, opacity = 50)
-
-
-def align_lists(list1, list2, default_value=None):
-    list1 = [list1] if not isinstance(list1, list) else list1
-    list2 = [list2] if not isinstance(list2, list) else list2
-    
-    # Both lists extend to match each other
-    if len(list1) < len(list2):
-        last_item = list1[-1] if list1 else default_value
-        list1.extend([last_item] * (len(list2) - len(list1)))
-    elif len(list2) < len(list1):
-        last_item = list2[-1] if list2 else default_value
-        list2.extend([last_item] * (len(list1) - len(list2)))
     
 

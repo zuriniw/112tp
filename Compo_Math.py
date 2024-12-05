@@ -1,13 +1,33 @@
 '''
-MATH is for operation of single value/list of values: 
 - Component: 
   - TypicleComponent:
       - UnaryOperator: Reverse, Square, SquareRoot, MultiplyPi, Absolute
       - BinaryOperator: Add, Subtract, Multiply, Divide
+      - Series
 '''
 
 from Components import TypicleComponent
 from cmu_graphics import *
+
+## HELPER: 
+def alignLists(L, M, default_value=None):
+    L = [L] if not isinstance(L, list) else L
+    M = [M] if not isinstance(M, list) else M
+    
+    if len(L) < len(M):
+        last_item = L[-1] if L else default_value
+        L.extend([last_item] * (len(M) - len(L)))
+      
+    elif len(M) < len(L):
+        last_item = M[-1] if M else default_value
+        M.extend([last_item] * (len(L) - len(M)))
+    
+    return L, M
+
+########################################################################################
+# UnaryOperator
+# output representation: v or [v1, v2, v3, ...]
+########################################################################################
 
 class UnaryOperator(TypicleComponent):
     def __init__(self, app, operator, symbol):
@@ -61,6 +81,10 @@ class Absolute(UnaryOperator):
     def __init__(self, app):
         super().__init__(app, '|x|', 'Abs')
 
+########################################################################################
+# UnaryOperator
+# output representation: v or [v1, v2, v3, ...]
+########################################################################################
 
 class BinaryOperator(TypicleComponent):
     def __init__(self, app, operator, symbol):
@@ -95,7 +119,7 @@ class BinaryOperator(TypicleComponent):
         n1_val = [n1_val] if not isinstance(n1_val, list) else n1_val
         n2_val = [n2_val] if not isinstance(n2_val, list) else n2_val
 
-        n1_val, n2_val = align_lists(n1_val, n2_val, default_value=0)
+        n1_val, n2_val = alignLists(n1_val, n2_val, default_value=0)
 
         results = [self.performOperation(n1, n2) for n1, n2 in zip(n1_val, n2_val)]
 
@@ -117,7 +141,10 @@ class Divide(BinaryOperator):
     def __init__(self, app):
         super().__init__(app, '÷', 'Div')
 
-
+########################################################################################
+# SERIES
+# output representation: [v1, v2, v3, ...]
+########################################################################################
 
 class Series(TypicleComponent):
     def __init__(self, app):
@@ -153,17 +180,3 @@ class Series(TypicleComponent):
             return series
         except (ValueError, TypeError):
             return []
-
-def align_lists(list1, list2, default_value=None):
-    list1 = [list1] if not isinstance(list1, list) else list1
-    list2 = [list2] if not isinstance(list2, list) else list2
-    
-    if len(list1) < len(list2):
-        last_item = list1[-1] if list1 else default_value
-        list1.extend([last_item] * (len(list2) - len(list1)))
-      
-    elif len(list2) < len(list1):
-        last_item = list2[-1] if list2 else default_value
-        list2.extend([last_item] * (len(list1) - len(list2)))
-    
-    return list1, list2

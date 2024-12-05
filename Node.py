@@ -1,9 +1,13 @@
+'''
+- Node
+'''
 from cmu_graphics import *
 
 ########################################################################################  
 # NODE 
 #       1 //  visualization & mouse-hit detect
 #       2 //  manage data flow
+#       3 //  broadcast
 ########################################################################################
 
 class Node:
@@ -36,7 +40,6 @@ class Node:
     
     
     ###### 2 // Manage Data Flow ######
-
     # endnode(inputnode) hear from outputnode
     def receiveValue(self, value):
         self.value = value
@@ -60,7 +63,6 @@ class Node:
             self.connections.append(connection)
             if connection.isValid and self.value is not None:
                 connection.end_node.receiveValue(self.value)
-
 
     def removeConnection(self, connection):
         if connection in self.connections:

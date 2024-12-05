@@ -1,8 +1,9 @@
 '''
-- TYPICAL COMPONENT
-    - POINT
-    - VECTOR
-    - VECTOR PREVIEW
+- Component
+    - TypicleComponent
+        - Point
+        - Vector
+        - VectorPreview
 '''
 from cmu_graphics import *
 from Components import *
@@ -59,9 +60,7 @@ class Point(TypicleComponent):
                 x, y = point[1]
                 worldX = x + self.app.x0
                 worldY = self.app.y0 - y
-                drawCircle(worldX, worldY, 4, fill='white',
-                        border='blue',
-                        visible=self.isDisplay)
+                drawCircle(worldX, worldY, 4, fill='white', border='blue', visible=self.isDisplay)
 
     def getDefaultValue(self, nodeName):
         return self.inputDefaultValue.get(nodeName)

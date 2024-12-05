@@ -1,4 +1,14 @@
+'''
+- Connection
+'''
 from cmu_graphics import *
+
+########################################################################################  
+# CONNECTION
+#       1 //  tell whether is Valid
+#       2 //  no storage
+#       3 //  no boradcast
+########################################################################################
 
 class Connections:
     def __init__(self, app, start_node, end_node):
@@ -13,9 +23,7 @@ class Connections:
         if self.end_node.component.name == 'Create\nPanel\n[/]':
             return True
 
-        if isinstance(end_value, list):
-            # 当输入端 不是单值 是列表
-
+        if isinstance(end_value, list):     # 当输入端 不是单值 是列表
             # 点类型检查
             if end_value[0][0] == 'point':
                 point_validation = (
