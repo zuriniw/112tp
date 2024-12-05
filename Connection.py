@@ -22,6 +22,18 @@ class Connections:
         
         if self.end_node.component.name == 'Create\nPanel\n[/]':
             return True
+        
+        if self.end_node.component.name == 'Measure\nDistance\n[<-->]':
+            shape_vio = (
+                isinstance(start_value, (int, float)) or 
+                (isinstance(start_value, list) and 
+                isinstance((start_value[0]), (int, float)))
+            )
+            if shape_vio:
+                app.message = ';-( Invalid feed!'
+                app.hintMessage = '[plz feed in point(s); double click the connection to unwire]'
+                return False
+            return True
 
         if isinstance(end_value, list):     # 当输入端 不是单值 是列表
             # 点类型检查

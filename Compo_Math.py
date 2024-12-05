@@ -41,7 +41,7 @@ class UnaryOperator(TypicleComponent):
         
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
-        self.outputNodes[0].value = self.calculate()
+        self.outputNodes[0].value = None
 
         self.hasAllInputs = True
         self.operator = operator

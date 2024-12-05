@@ -129,10 +129,8 @@ class RectCreator(TypicleComponent):
     def draw(self):
         if self.hasAllInputs:
             rects = self.calculate()
-            
             if not rects:
                 return
-            
             for rect in rects:
                 x, y = getDrawingPoint(self.x0, self.y0,rect[1])
                 width = rect[2]

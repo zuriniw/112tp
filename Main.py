@@ -704,7 +704,7 @@ def onMouseRelease(app, mouseX, mouseY):
             elif len(app.components)==1:
                 app.hintMessage = "Nice try ;-) let's invite another component"
             else:
-                app.hintMessage = "If you wanna remove the component, just DOUBLE CLICK on it"
+                app.hintMessage = "If you wanna remove the component/connection, just DOUBLE CLICK on it"
 
         # Reset dragging state
         app.isDraggingNewComponent = False
@@ -725,7 +725,7 @@ def onMouseRelease(app, mouseX, mouseY):
                         new_connection.end_node.addConnection(new_connection)
                         new_connection.start_node.addConnection(new_connection)
                         if new_connection.isValid:
-                            if endNode.component.isGeo and endNode.component.name !='Vector\nPreview\n→':
+                            if endNode.component.isGeo and endNode.component.name !='Vector\nPreview\n~':
                                 shapeName = endNode.component.outputNodes[0].value[0][0]
                                 shapeCount = len(endNode.component.outputNodes[0].value)
                                 if new_connection.isValid and shapeName != 'point':
