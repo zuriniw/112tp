@@ -106,7 +106,7 @@ class VectorPreview(TypicleComponent):
     def __init__(self, app):
         inputs = ['vector', 'anchor']
         outputs = ['']  # Empty string for no output
-        name = 'Vector\nPreview\n→'
+        name = 'Vector\nPreview\n~'
         self.isGeo = True
         self.isDisplay = True
         super().__init__(app, inputs, outputs, name)

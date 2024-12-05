@@ -86,7 +86,7 @@ class RectCreator(TypicleComponent):
     def __init__(self, app):
         inputs = ['point', 'width', 'height']
         outputs = ['rect']
-        name = 'Draw\nRect\nO'
+        name = 'Draw\nRect\n□'
         
         self.isGeo = True
         self.isDisplay = True

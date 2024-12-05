@@ -381,8 +381,6 @@ class PinnedSlider2D(Slider2D):
         self.isSliderPlaying = False
         self.store = []
 
-
-
     def syncWithOriginal(self):
         self.min_val = self.original_slider.min_val
         self.max_val = self.original_slider.max_val

@@ -170,6 +170,7 @@ def onAppStart(app):
 
     app.isSliderPlaying = False
     app.isSliderRecording = False
+    app.stepsPerSecond = 28
 
 def loadToolbar(app): 
     currbuttomCompoList = app.componentTypes[app.activeCategory]
@@ -677,11 +678,10 @@ def onMouseDrag(app, mouseX, mouseY):
 def onStep(app):
     for slider in app.pinnedSliders:
         if slider.isSliderPlaying:
-            if len(slider.store) > 0:  # 确保有存储的数据
-                x, y = slider.store[0]  # 取第一个位置的数据
+            if len(slider.store) > 0:
+                x, y = slider.store[0]
                 slider.updateValue(x,y)
-
-                # 循环播放：将第一个元素移到末尾
+                # loop play
                 slider.store = slider.store[1:] + [slider.store[0]]
 
 def adjustPosition(app, comp, mouseX, mouseY):

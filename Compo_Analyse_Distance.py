@@ -5,7 +5,7 @@ class Distance(TypicleComponent):
     def __init__(self, app):
         inputs = ['shapeA', 'shapeB']
         outputs = ['distance']
-        name = 'Measure\nDistance\n⟷'
+        name = 'Measure\nDistance\n[<-->]'
         
         self.isGeo = False
         self.isDisplay = False

@@ -13,7 +13,7 @@ class Move(TypicleComponent):
     def __init__(self, app):
         inputs = ['geo', 'vector']
         outputs = ['moved']
-        name = 'Move\nGeo\n↗'
+        name = 'Move\nGeo\nΛ'
         self.isGeo = True
         self.isDisplay = True
         super().__init__(app, inputs, outputs, name)
