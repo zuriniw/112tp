@@ -463,6 +463,7 @@ class PinnedSlider2D(Slider2D):
         ### button stuff
         r = self.recordButton.r
         y1 = y+app.paddingY/2+self.recordButton.r+self.height
+
         self.recordButton.drawUI(app, x+r+2, y1)
         self.playButton.drawUI(app, x+2+2*r+app.paddingX*3, y1)
         
@@ -480,10 +481,12 @@ class SliderButton:
 
     def hitTest(self, mouseX, mouseY):
         distance = ((mouseX - self.x) ** 2 + (mouseY - self.y) ** 2) ** 0.5
+        #print(f'hit {self.name}')
         return distance <= self.r
 
     def drawUI(self, app, x, y):
         # Update colors based on hover state
+        self.x, self.y = x, y 
         textColor = 'white' if self.isHovering else 'black'
         bgColor = 'black' if self.isHovering else 'white'
         drawCircle(x, y, self.r, fill= bgColor, border='black')

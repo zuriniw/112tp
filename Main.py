@@ -403,12 +403,12 @@ def onMouseMove(app, mouseX, mouseY):
         for node in component.inputNodes + component.outputNodes:
             node.isHovering = node.hitTest(mouseX, mouseY)
     
-    
-    
+    ######  pinned slider button Hovering ######
     for pinnedSlider in app.pinnedSliders:
         if isinstance(pinnedSlider, PinnedSlider2D):
             for button in pinnedSlider.buttons:
                 button.isHovering = button.hitTest(mouseX, mouseY)
+
     ###### 3.  Button Hovering ######
     for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
@@ -422,18 +422,8 @@ def onMouseMove(app, mouseX, mouseY):
             return
         
     ###### 4.  Tab Hovering ######
-    foundHover = False
     for tab in app.tabs:
-        if tab.hitTest(mouseX, mouseY):
-            tab.isHovering = True
-            foundHover = True
-        else:
-            tab.isHovering = False
-
-    if not foundHover:
-        for tab in app.tabs:
-            tab.isHover = False
-
+        tab.isHovering = tab.hitTest(mouseX, mouseY)
 
     # Only reset if a button is no longer being hovered
     if app.currCompInToolBar is not None:
