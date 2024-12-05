@@ -78,10 +78,8 @@ class Connections:
     def draw(self):
         lightPink = rgb(226, 163, 136)
         drawLine(
-            self.start_node.x, self.start_node.y,
-            self.end_node.x, self.end_node.y,
-            lineWidth=2,
-            fill='grey' if self.isValid else lightPink,
+            self.start_node.x, self.start_node.y, self.end_node.x, self.end_node.y,
+            lineWidth=2, fill='grey' if self.isValid else lightPink,
         )
     
     def hitTest(self, mouseX, mouseY, threshold=5):

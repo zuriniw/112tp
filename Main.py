@@ -11,8 +11,7 @@ from Compo_Vector import *
 from Compo_Mani import *
 from Connection import Connections
 from Toggle import Toggle
-from ToolbarButton import ToolbarButton
-from ToolbarTab import ToolbarTab
+from Toolbar import *
 
 import time
 
