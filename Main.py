@@ -18,7 +18,7 @@ import time
 
 def onAppStart(app):
     ## Window Settings
-    app.width = 988
+    app.width = 1512
     app.height = 982
     app.mouseX = app.width/2
     app.mouseY = app.height/2
@@ -298,19 +298,8 @@ def drawGeoComponentPopUp(app):
             y_offset += 20
 
 def drawPinnedSliders(app):
-    startX = app.borderX * 3
     for slider in app.pinnedSliders:
-        i = app.pinnedSliders.index(slider)
-        x = startX + 180 * i
-        
-        # 计算基准y位置，确保昵称对齐
-        baseY = app.height - app.pinnedSliderHeight + app.borderY*2
-        if isinstance(slider, PinnedSlider2D):
-            y = baseY - app.borderY*7 - 4  # 调整2D滑块的整体位置
-        else:
-            y = baseY
-            
-        slider.drawTwinUI(x, y)
+        slider.drawTwinUI(app)
 
 def drawMessage(app):
     drawLabel(app.message, app.togglePanelStartX - app.paddingX, app.height - app.borderY*2, align = 'right', size = 16)       
@@ -414,6 +403,12 @@ def onMouseMove(app, mouseX, mouseY):
         for node in component.inputNodes + component.outputNodes:
             node.isHovering = node.hitTest(mouseX, mouseY)
     
+    
+    
+    for pinnedSlider in app.pinnedSliders:
+        if isinstance(pinnedSlider, PinnedSlider2D):
+            for button in pinnedSlider.buttons:
+                button.isHovering = button.hitTest(mouseX, mouseY)
     ###### 3.  Button Hovering ######
     for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
@@ -570,12 +565,8 @@ def onMousePress(app, mouseX, mouseY, button):
                 else:
                     y = baseY
                 
-                if slider.hitTestHandle(mouseX, mouseY, x, y):
-                    app.currDraggingPinnedSlider = {  # Start dragging the pinned slider
-                        'slider': slider,
-                        'x': x,
-                        'y': y
-                    }
+                if slider.hitTestHandle(mouseX, mouseY):
+                    app.currDraggingPinnedSlider = slider
                     return
 
     ####### 5. Slider Customization Interaction ######
@@ -651,9 +642,8 @@ def onMouseDrag(app, mouseX, mouseY):
 
     ####### 4. Handle Pinned Slider Dragging ######
     elif app.currDraggingPinnedSlider:
-        slider = app.currDraggingPinnedSlider['slider']
-        x = app.currDraggingPinnedSlider['x']
-        y = app.currDraggingPinnedSlider['y']
+        slider = app.currDraggingPinnedSlider
+        x,y = slider.x, slider.y
         
         if isinstance(slider, PinnedSlider2D):
             # 2D slider处理
@@ -873,10 +863,15 @@ def onKeyPress(app, key):
                 app.currCstmzSlider.isPinned = not app.currCstmzSlider.isPinned
                 if app.currCstmzSlider.isPinned:
                     # Create and add a pinned slider
+                    i = len(app.pinnedSliders)
+                    x=app.borderX*3 + i*180
+                    baseY = app.height - app.pinnedSliderHeight + app.borderY * 2
                     if isinstance(app.currCstmzSlider,Slider1D):
-                        pinned_twin = PinnedSlider1D(app.currCstmzSlider, app)
+                        y1=baseY
+                        pinned_twin = PinnedSlider1D(app, app.currCstmzSlider, x,y1)
                     elif isinstance(app.currCstmzSlider,Slider2D):
-                        pinned_twin = PinnedSlider2D(app.currCstmzSlider, app)
+                        y2=baseY - app.borderY * 7 - 4
+                        pinned_twin = PinnedSlider2D(app, app.currCstmzSlider, x,y2)
                     app.pinnedSliders.append(pinned_twin)
                 else:
                     # Remove the corresponding pinned slider

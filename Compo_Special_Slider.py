@@ -124,14 +124,15 @@ class Slider1D(Slider):
         self.updateValue(newValue)
 
 class PinnedSlider1D(Slider):
-    def __init__(self, original_slider, app):
+    def __init__(self, app, original_slider, x,y):
         super().__init__(app, original_slider.name)
         self.original_slider = original_slider
         self.min_val = original_slider.min_val
         self.max_val = original_slider.max_val
         self.current_precision_index = original_slider.current_precision_index
         self.outputNodes[0].value = original_slider.getValue()
-    
+        self.x, self.y = x, y
+
     def syncWithOriginal(self):
         self.min_val = self.original_slider.min_val
         self.max_val = self.original_slider.max_val
@@ -163,7 +164,8 @@ class PinnedSlider1D(Slider):
         # current slider's value
         return self.getValue()
     
-    def hitTestHandle(self, mouseX, mouseY, x, y):
+    def hitTestHandle(self, mouseX, mouseY):
+        x,y = self.x, self.y
         trackY = y + self.height/2
         handleX = x + ((self.getValue() - self.min_val) / 
                       (self.max_val - self.min_val)) * self.width
@@ -171,7 +173,8 @@ class PinnedSlider1D(Slider):
         distance = ((mouseX - handleX)**2 + (mouseY - trackY)**2)**0.5
         return distance <= handleRadius
     
-    def drawTwinUI(self, x, y):
+    def drawTwinUI(self, app):
+        x,y = self.x, self.y
         trackY = y + self.height/2
         drawLine(x, trackY, x + self.width, trackY,
                 fill='black', lineWidth=2)
@@ -360,7 +363,7 @@ class Slider2D(Slider):
 
 
 class PinnedSlider2D(Slider2D):
-    def __init__(self, original_slider, app):
+    def __init__(self, app, original_slider, x, y):
         super().__init__(app, 
                         name=original_slider.name,
                         min_val=original_slider.min_val,
@@ -370,6 +373,13 @@ class PinnedSlider2D(Slider2D):
         self.outputNodes[1].value = original_slider.getValues()[1]
         self.current_precision_index = original_slider.current_precision_index
         
+        self.recordButton = SliderButton(app,'Record',self, self.x, self.y)
+        self.playButton = SliderButton(app, 'Play', self, self.x, self.y)
+        self.buttons = [self.recordButton, self.playButton]
+        self.x, self.y = x, y
+
+
+
     def syncWithOriginal(self):
         self.min_val = self.original_slider.min_val
         self.max_val = self.original_slider.max_val
@@ -406,7 +416,8 @@ class PinnedSlider2D(Slider2D):
     def calculate(self):
         return self.getValue()
 
-    def hitTestHandle(self, mouseX, mouseY, x, y):
+    def hitTestHandle(self, mouseX, mouseY):
+        x,y = self.x, self.y
         x_val, y_val = self.getValues()
         handleX = x + ((x_val - self.min_val) / 
                     (self.max_val - self.min_val)) * self.width
@@ -415,7 +426,8 @@ class PinnedSlider2D(Slider2D):
         distance = ((mouseX - handleX)**2 + (mouseY - handleY)**2)**0.5
         return distance <= self.handleSize/2
 
-    def drawTwinUI(self, x, y):
+    def drawTwinUI(self, app):
+        x,y = self.x, self.y
         # background
         drawRect(x, y, self.width, self.height,
                 fill='white', border='black')      
@@ -448,3 +460,32 @@ class PinnedSlider2D(Slider2D):
             drawLabel(f'[ {self.original_slider.nickname} ]',
                     x + self.width/2, y + self.height + 12,
                     size=12)
+        ### button stuff
+        r = self.recordButton.r
+        y1 = y+app.paddingY/2+self.recordButton.r+self.height
+        self.recordButton.drawUI(app, x+r+2, y1)
+        self.playButton.drawUI(app, x+2+2*r+app.paddingX*3, y1)
+        
+class SliderButton:
+    def __init__(self, app, name, slider,x,y):
+        self.r = 12
+        self.name = name
+        self.textColor = 'black'
+        self.bgColor = 'white'
+        self.isHovering = False
+        self.slider = slider
+        self.symbol = '►' if name == 'Play' else '●'
+        self.isHovering = False
+        self.x, self.y = x,y
+
+    def hitTest(self, mouseX, mouseY):
+        distance = ((mouseX - self.x) ** 2 + (mouseY - self.y) ** 2) ** 0.5
+        return distance <= self.r
+
+    def drawUI(self, app, x, y):
+        # Update colors based on hover state
+        textColor = 'white' if self.isHovering else 'black'
+        bgColor = 'black' if self.isHovering else 'white'
+        drawCircle(x, y, self.r, fill= bgColor, border='black')
+        drawLabel(self.symbol, x, y, fill=textColor, size=12)
+        
