@@ -1,5 +1,15 @@
+'''
+- COMPONENT
+    - PANEL
+'''
+
 from cmu_graphics import *
 from Components import *
+
+########################################################################################
+# Panel is for reveal the value of any outputNode 
+#       1.panel can show the list of geo representation/values
+########################################################################################
 
 class Panel(Component):
     def __init__(self, app):

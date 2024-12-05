@@ -1,7 +1,7 @@
 from cmu_graphics import *
 from Components import TypicleComponent
 
-## take in world cdnt and give back drawing cdnt for drawing
+## HELPER: take in world cdnt and give back drawing cdnt for drawing
 def getDrawingPoint(x0,y0,worldPoint):
     wx, wy = worldPoint
     dx = wx + x0

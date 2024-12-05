@@ -1,10 +1,16 @@
+'''
+- COMPONENT
+    - TYPICAL COMPONENT
+'''
+
 from cmu_graphics import *
 from Node import *
 ########################################################################################
 # COMPONENT is the most basic class of compo: 
-#       - set the birthplace
-#       - detect mouse hit
+#       1.set the birthplace
+#       2.detect mouse hit
 ########################################################################################
+
 class Component:
     def __init__(self, app):  # Added default width and height
         self.app = app
@@ -39,12 +45,10 @@ class Component:
                 if s.original_slider == self:
                     app.pinnedSliders.remove(s)
 
-
-
 ########################################################################################
 # TYPICAL COMPONENT 
-#       template typical component UI drawing, with input, centered label, and output    
-#       initialize input and output Nodes as lists
+#       1.template typical component UI drawing, with input, centered label, and output    
+#       2.initialize input and output Nodes as lists
 ########################################################################################
 
 class TypicleComponent(Component):

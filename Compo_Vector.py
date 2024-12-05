@@ -1,7 +1,13 @@
+'''
+- TYPICAL COMPONENT
+    - POINT
+    - VECTOR
+    - VECTOR PREVIEW
+'''
 from cmu_graphics import *
 from Components import *
 
-## take in world cdnt and give back drawing cdnt for drawing
+## HELPER: take in world cdnt and give back drawing cdnt for drawing
 def getDrawingPoint(x0,y0,worldPoint):
     wx, wy = worldPoint
     dx = wx + x0
@@ -9,6 +15,10 @@ def getDrawingPoint(x0,y0,worldPoint):
     drawingPoint = (dx, dy)
     return drawingPoint
 
+########################################################################################
+# POINT
+# output representation: ['point', (x, y)]
+########################################################################################
 class Point(TypicleComponent):
     def __init__(self, app):
         inputs = ['x', 'y']
@@ -28,7 +38,6 @@ class Point(TypicleComponent):
               
         self.outputNodes[0].value = self.calculate()
         self.hasAllInputs = True
-        
 
     def calculate(self):
         x_val = self.inputNodes[0].value
@@ -44,7 +53,6 @@ class Point(TypicleComponent):
 
         return points
     
-
     def draw(self):
             points = self.calculate()
             for point in points:
@@ -58,8 +66,11 @@ class Point(TypicleComponent):
     def getDefaultValue(self, nodeName):
         return self.inputDefaultValue.get(nodeName)
 
-    
-
+########################################################################################
+# VECTOR
+# output representation: ['vector', (x, y)]
+# note: vector is invisible
+########################################################################################
 
 class Vector(TypicleComponent):
     def __init__(self, app):
@@ -101,6 +112,10 @@ class Vector(TypicleComponent):
         
         return vectors if vectors else [[vectors,(0, 0)]]
 
+########################################################################################
+# VECTOR PREVIEW
+#       1.reveal the vector by providing an anchor point
+########################################################################################
 
 class VectorPreview(TypicleComponent):
     def __init__(self, app):

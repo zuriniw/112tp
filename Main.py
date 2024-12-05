@@ -63,7 +63,7 @@ def onAppStart(app):
     app.togglePanelStartX = app.width - app.togglePanelWidth
     app.togglePanelStartY = app.toolbarHeight + app.paddingY
     
-    # Create toggle buttons
+    ## Create toggle buttons
     toggleStartX = app.togglePanelStartX + app.togglePanelWidth/2 - app.toggleWidth/2
     firstToggleStartY = app.togglePanelStartY + app.borderY * 3
     toggleNames = list(app.toggleStates.keys())
@@ -91,7 +91,7 @@ def onAppStart(app):
     app.activeCategory = 'Vector'
     loadToolbar(app)
 
-    # Dictionary mapping keys to component classes
+    ## Dictionary mapping keys to component classes
     app.component_map = {
         's': Slider1D,
         'c': CircleCreator,
@@ -102,7 +102,8 @@ def onAppStart(app):
         'm': Move
 
     }
-
+    
+    ## Instructions that will foating when hovering over compo buttons
     app.compoInfoMapping = {
         Vector: f"input:\n -start: geo point(s)\n -end: geo point(s)\n \noutput:\n -vector(s)\n{'-'*24}\nVector is invisable!\n\nFeed it in [Move Geo]\nOr use [Vect Preview]\nto have a look;-)",
         Point: f"input:\n -x: num(s)\n -y: num(s)\n \noutput:\n -geo point(s)\n{'-'*24}\npoint is the mother of\nalmost anything here\neg: Geometry, Vector,\n ..., except number\n who is the grandma!",
@@ -146,18 +147,18 @@ def onAppStart(app):
     ## Group Drag Settings
     app.dragGroupOldMouseX, app.dragGroupOldMouseX = None, None
 
-    ## CstmzingSlider ##
-    app.editingField = 'nickname'  # 'nickname', 'min', or 'max'
+    ## CstmzingSlider
+    app.editingField = 'nickname' 
     app.customInput = ''
     app.currCstmzSlider = None
 
-    ## Right Click Toggle ##
+    ## Right Click Toggle 
     app.currGeoComponent = None
 
-    ## Hover Over Tool Bar ##
+    ## Hover Over Tool Bar 
     app.currCompInToolBar = None
 
-    ## pinned sliders ##
+    ## pinned sliders 
     app.pinnedSliders = []
     app.pinnedSliderHeight = 100
     app.currDraggingPinnedSlider = None
@@ -181,10 +182,8 @@ def drawToolbar(app):
     tabHeight = 30
     drawLine(0, app.toolbarHeight, app.width, app.toolbarHeight)
     drawLine(0, tabHeight-1, app.width, tabHeight-1)
-    # 绘制标签
     for tab in app.tabs:
         tab.drawUI()
-    # 绘制当前标签页里的component按钮
     for button in app.currButtomList:
         button.drawUI()
 
@@ -216,13 +215,11 @@ def drawGrid(app):
         # Draw horizontal lines
         for j in range(-upGrids, downGrids + 1):
             y = app.y0 + j * gridSize
-            drawLine(app.borderX, y, app.togglePanelStartX, y,
-                    fill='lightGrey', lineWidth=0.5)
+            drawLine(app.borderX, y, app.togglePanelStartX, y, fill='lightGrey', lineWidth=0.5)
             
 def drawDot(app):
     if app.isDotDisplay:
         gridSize = 40
-        
         # Calculate grid counts from origin to edges
         rightGrids = int((app.togglePanelStartX - app.x0) // gridSize)
         leftGrids = int((app.x0 - app.borderX) // gridSize)
@@ -233,7 +230,6 @@ def drawDot(app):
             for j in range(-upGrids, downGrids + 1):
                 x = app.x0 + i * gridSize
                 y = app.y0 + j * gridSize
-                #drawCircle(x, y, 1.5, fill='darkgrey')
                 drawLabel('+', x,y, fill = 'grey',size = 16, opacity = 30)
 
 
@@ -255,29 +251,28 @@ def drawCstmzingSliderPopUp(app):
     if currSlider in app.components:
         fields = currSlider.fields
         height = 20*len(fields)
-        y_offset = -1 * (height + 10)
+        offsetY = -1 * (height + 10)
         
         # Draw popup background
-        drawRect(currSlider.x, currSlider.y + y_offset - 10 , 120, height, fill='white', border='black')
+        drawRect(currSlider.x, currSlider.y + offsetY - 10 , 120, height, fill='white', border='black')
         drawLine(currSlider.x+1.5, currSlider.y - 20,currSlider.x+1.5, currSlider.y, dashes = (3,3))
         
         # Draw fields
         for field, value in fields.items():
             # Highlight editing field
             if field == app.editingField:
-                drawRect(currSlider.x, currSlider.y + y_offset - 10, 
-                        120, 20, fill='lightBlue', opacity=30)
+                drawRect(currSlider.x, currSlider.y + offsetY - 10, 120, 20, fill='lightBlue', opacity=30)
                 if app.customInput != '':
                     text = f"{field}: {app.customInput}_"  # Show cursor
                 else:
                     text = f"{field}: {value}_"
             else:
                 text = f"{field}: {value}"
-            drawLabel(text, currSlider.x + 60, currSlider.y + y_offset)
-            y_offset += 20
+            drawLabel(text, currSlider.x + 60, currSlider.y + offsetY)
+            offsetY += 20
     
 def drawGeoComponentPopUp(app):
-    if app.currGeoComponent in app.components and hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+    if app.currGeoComponent in app.components and app.currGeoComponent:
         
         currComponent = app.currGeoComponent
         fields = {
@@ -285,21 +280,20 @@ def drawGeoComponentPopUp(app):
         }
         
         # Draw popup background
-        drawRect(currComponent.x, currComponent.y - 40, 120, 20*len(fields),
-                 fill='white', border='black')
+        drawRect(currComponent.x, currComponent.y - 40, 120, 20*len(fields),fill='white', border='black')
         
         # Draw fields
-        y_offset = -30
+        offsetY = -30
         drawLine(currComponent.x+1, currComponent.y - 30,currComponent.x+1, currComponent.y, dashes = (3,3))
         for field, value in fields.items():
             # Highlight editing field
             if field == app.editingField:
-                drawRect(currComponent.x, currComponent.y + y_offset - 10,
+                drawRect(currComponent.x, currComponent.y + offsetY - 10,
                          120, 20, fill='lightBlue', opacity=30)
             
             text = f"{field}: {value}"
-            drawLabel(text, currComponent.x + 60, currComponent.y + y_offset)
-            y_offset += 20
+            drawLabel(text, currComponent.x + 60, currComponent.y + offsetY)
+            offsetY += 20
 
 def drawPinnedSliders(app):
     for slider in app.pinnedSliders:
@@ -389,6 +383,7 @@ def drawCurrCompoInToolBarInfo(app):
 
         drawRect(x0, y0, width + 2*app.borderX, height, 
             fill='white', border='black', borderWidth=2)
+        
         # Calculate box dimensions dynamically
         lines = compInfo.splitlines()
         for i, line in enumerate(lines):
@@ -407,13 +402,13 @@ def onMouseMove(app, mouseX, mouseY):
         for node in component.inputNodes + component.outputNodes:
             node.isHovering = node.hitTest(mouseX, mouseY)
     
-    ######  pinned slider button Hovering ######
+    ###### 3.  pinned slider button Hovering ######
     for pinnedSlider in app.pinnedSliders:
         if isinstance(pinnedSlider, PinnedSlider2D):
             for button in pinnedSlider.buttons:
                 button.isHovering = button.hitTest(mouseX, mouseY)
 
-    ###### 3.  Button Hovering ######
+    ###### 4.  Button Hovering ######
     for button in app.currButtomList:
         button.isHovering = button.hitTest(mouseX, mouseY)
         # Check toolbar button hovering
@@ -425,17 +420,16 @@ def onMouseMove(app, mouseX, mouseY):
                 app.infoboxX, app.infoboxY = button.x, button.y + 65
             return
         
-    ###### 4.  Tab Hovering ######
+    ###### 5. Tab Hovering ######
     for tab in app.tabs:
         tab.isHovering = tab.hitTest(mouseX, mouseY)
-
     # Only reset if a button is no longer being hovered
     if app.currCompInToolBar is not None:
         app.currCompInToolBar = None
 
 
 def onMousePress(app, mouseX, mouseY, button):
-    # Handle left mouse button interaction
+    #  left mouse button interaction
     if button == 0:
         currentTime = time.time()
         app.currCompInToolBar = []
@@ -470,6 +464,7 @@ def onMousePress(app, mouseX, mouseY, button):
             
         ####### 3. Component Display Interaction ######
         if app.isCompDisplay:
+
             ####### 3.1 Node and Connection Interaction ######
             # Check if clicking on a node
             for component in app.components:
@@ -505,11 +500,11 @@ def onMousePress(app, mouseX, mouseY, button):
                             component.isDraggingHandle = True
                             app.currDraggingComponent = component
                         else:
-                            if not app.selectedCompo:  # 单个拖拽
+                            if not app.selectedCompo:  # SINGLE DRAG
                                 app.currDraggingComponent = component
                                 app.dragOffset = {'x': mouseX - app.currDraggingComponent.x, 'y': mouseY - app.currDraggingComponent.y}
                                 component.isDragging = True
-                            else:  # 群组拖拽
+                            else:  # GROUP DRAG
                                 app.dragGroupOldMouseX, app.dragGroupOldMouseY = mouseX, mouseY
                                 app.currDraggingComponent = app.selectedCompo
                                 for compo in app.selectedCompo:
@@ -560,7 +555,7 @@ def onMousePress(app, mouseX, mouseY, button):
                         app.hintMessage = 'PRESS the ► ! cannot wait to watch it'
                     else:
                         slider.isSliderRecording = True
-                        slider.store = []       # 当重新开始一次录制的时候，会清空之前存的东西
+                        slider.store = []       # Clear previous stored
                         app.message = 'START Recording '
                         app.hintMessage = 'PRESS the ● button again to stop'
                     return
@@ -568,11 +563,6 @@ def onMousePress(app, mouseX, mouseY, button):
                     slider.isSliderPlaying = not slider.isSliderPlaying
                     app.message = 'Nice try! PRESS ► again to stop'
                     app.hintMessage = 'I bet it is the best animation I v ever seen...'
-                    
-
-                    
-            
-            
 
     ####### 5. Slider Customization Interaction ######
     # Handle right mouse button interaction
@@ -588,9 +578,7 @@ def onMousePress(app, mouseX, mouseY, button):
                 app.currGeoComponent = component  # Open geometric component customization
                 app.editingField = 'display'  # Set editing field
                 app.customInput = ''  # Reset custom input
-                return
-
-    
+                return 
 
 def onMouseDrag(app, mouseX, mouseY):
     # Update current mouse position
@@ -651,25 +639,24 @@ def onMouseDrag(app, mouseX, mouseY):
         x,y = slider.x, slider.y
         
         if isinstance(slider, PinnedSlider2D):
-            # 2D slider处理
+            # 2D slider
             normalized_x = (mouseX - x) / slider.width
-            normalized_y = 1 - (mouseY - y) / slider.height  # 反转y轴
+            normalized_y = 1 - (mouseY - y) / slider.height  # Flip y axis
             
             newX = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
             newY = slider.min_val + normalized_y * (slider.max_val - slider.min_val)
             
-            # 确保值在有效范围内
+            # in domain
             newX = max(slider.min_val, min(slider.max_val, newX))
             newY = max(slider.min_val, min(slider.max_val, newY))
-            
             slider.updateValue(newX, newY)
 
-            # 如果在录制，需要额外记录
+            # STORE THE MOUSE TRACK for recording
             if slider.isSliderRecording:
                 slider.store.append((newX, newY))
 
         else:
-            # 1D slider处理
+            # 1D slider
             normalized_x = (mouseX - x) / slider.width
             newValue = slider.min_val + normalized_x * (slider.max_val - slider.min_val)
             newValue = max(slider.min_val, min(slider.max_val, newValue))
@@ -681,7 +668,7 @@ def onStep(app):
             if len(slider.store) > 0:
                 x, y = slider.store[0]
                 slider.updateValue(x,y)
-                # loop play
+                # LOOP play
                 slider.store = slider.store[1:] + [slider.store[0]]
 
 def adjustPosition(app, comp, mouseX, mouseY):
@@ -720,8 +707,6 @@ def onMouseRelease(app, mouseX, mouseY):
             else:
                 app.hintMessage = "If you wanna remove the component, just DOUBLE CLICK on it"
 
-
-        
         # Reset dragging state
         app.isDraggingNewComponent = False
         app.draggedComponentType = None
@@ -795,7 +780,6 @@ def onMouseRelease(app, mouseX, mouseY):
     app.dragGroupOldMouseX, app.dragGroupOldMouseY = None, None
 
 
-
 def isIntersectRects(leftTop1, rightBot1, leftTop2, rightBot2):
     x1, y1 = leftTop1
     x2, y2 = rightBot1
@@ -823,6 +807,7 @@ def onKeyPress(app, key):
                 app.editingField = fields[idx]  # Switch to the next field
                 app.customInput = ''  # Clear input
         
+        # GPT taught how to use try here
         elif key == 'enter':
             # Save changes and exit editing mode
             if app.editingField == 'nickname':
@@ -831,7 +816,6 @@ def onKeyPress(app, key):
             elif app.editingField == 'value':
                 try:
                     new_value = float(app.customInput)
-                    # 确保输入值在有效范围内
                     l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
                     new_value = max(min(new_value, r), l)
                     app.currCstmzSlider.updateValue(new_value)
@@ -840,7 +824,6 @@ def onKeyPress(app, key):
             elif app.editingField == 'x':
                 try:
                     new_x = float(app.customInput)
-                    # 确保输入值在有效范围内
                     l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
                     new_x = max(min(new_x, r), l)
                     app.currCstmzSlider.updateValue(new_x, app.currCstmzSlider.outputNodes[1].value)
@@ -849,7 +832,6 @@ def onKeyPress(app, key):
             elif app.editingField == 'y':
                 try:
                     new_y = float(app.customInput)
-                    # 确保输入值在有效范围内
                     l, r = app.currCstmzSlider.min_val, app.currCstmzSlider.max_val
                     new_y = max(min(new_y, r), l)
                     app.currCstmzSlider.updateValue(app.currCstmzSlider.outputNodes[0].value, new_y)
@@ -870,7 +852,7 @@ def onKeyPress(app, key):
                 except ValueError:
                     pass
             elif app.editingField == 'precision':
-                # 切换精度
+                # switch precision level
                 app.currCstmzSlider.current_precision_index = (
                     app.currCstmzSlider.current_precision_index + 1
                 ) % len(app.currCstmzSlider.precision_options)
@@ -895,7 +877,7 @@ def onKeyPress(app, key):
                     app.pinnedSliders = [slider for slider in app.pinnedSliders
                                         if slider.original_slider != app.currCstmzSlider]
                 
-            # 只更新字段，不重置值
+            # only update(not reset)
             app.currCstmzSlider.updateFields()
             # Reset input and exit editing
             app.customInput = ''
@@ -917,7 +899,7 @@ def onKeyPress(app, key):
             app.customInput += key
 
     ####### 2.  Geometric Component Interaction ######
-    elif hasattr(app, 'currGeoComponent') and app.currGeoComponent:
+    elif app.currGeoComponent:
         if key == 'tab':
             # Toggle the display state of the component
             app.currGeoComponent.isDisplay = not app.currGeoComponent.isDisplay
@@ -933,26 +915,25 @@ def onKeyPress(app, key):
         # Use the mapped class to create and append the component
             create_and_append_component(app.component_map[key], app)
             
-
         elif key in ['backspace', 'delete']:
             # Delete selected components
             if app.selectedCompo:
                 for compo in app.selectedCompo:
                     compo.deleteComponent(app)
-                app.selectedCompo = []  # Clear the selection
+                app.selectedCompo = []  # Clear all the selection
             else:
                 app.message = ';-)'
                 app.hintMessage = ''
                 app.secondHintMessage = ''
 
 def create_and_append_component(component_class, app):
-    # Create a new component instance
+    # Create a new
     newComponent = component_class(app)
-    # Update node positions if the method exists
-    if hasattr(newComponent, 'updateNodePositions'):
-        newComponent.updateNodePositions()
-    # Append the component to the app's component list
+    # Update node positions
+    newComponent.updateNodePositions()
+    # Add to the app list
     app.components.append(newComponent)
+
     messageName = getFirstTwoLines(newComponent.name)
     app.message = f'A ^{messageName}^ added ;-)'
     app.hintMessage = 'Whoo why not wire them together?' if len(app.components)==2 else "Nice try ;-) let's invite another component"

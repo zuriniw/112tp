@@ -1,5 +1,14 @@
+'''
+- TYPICAL COMPONENT
+    - DISTANCE
+'''
 from cmu_graphics import *
 from Components import *
+
+########################################################################################
+# DISTANCE is for reveal the value of any outputNode 
+# v or [v1,v2,v3,...]
+########################################################################################
 
 class Distance(TypicleComponent):
     def __init__(self, app):

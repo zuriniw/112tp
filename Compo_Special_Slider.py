@@ -1,3 +1,12 @@
+'''
+SLIDER is for dragging to create single value/value pairs: 
+- Component:  
+  - Slider:
+      - Slider1D
+           - PinnedSlider1D
+      - Slider2D
+           - PinnedSlider2D
+'''
 from Components import Component
 from cmu_graphics import *
 from Node import *
@@ -9,7 +18,6 @@ def processValueWithPrecision(value, precision_value):
 
 class Slider(Component):
     def __init__(self, app, name='Slider'):
-        inputs = []
         outputs = ['value']
         super().__init__(app)
         self.name = name
@@ -461,7 +469,7 @@ class PinnedSlider2D(Slider2D):
             drawLabel(f'[ {self.original_slider.nickname} ]',
                     x + self.width/2, y + self.height + 12,
                     size=12)
-        ### button stuff
+        # button stuff
         r = self.recordButton.r
         y1 = y+app.paddingY/2+self.recordButton.r+self.height
 
@@ -490,11 +498,12 @@ class SliderButton:
         bgColor = 'black' if self.isHovering else 'white'
         if self.name == 'Play':
             borderColor = 'purple' if self.slider.isSliderPlaying else 'black'
+            symbol = self.symbol if not self.slider.isSliderPlaying else 'l l' 
             drawCircle(x, y, self.r, fill=bgColor, border=borderColor)
             if self.isHovering:
-                drawLabel(self.symbol, x, y, fill='white', size=12)
+                drawLabel(symbol, x, y, fill='white', size=12)
             else:
-                drawLabel(self.symbol, x, y, fill=borderColor, size=12)
+                drawLabel(symbol, x, y, fill=borderColor, size=12)
             
         elif self.name == 'Record':
             borderColor = 'green' if self.slider.isSliderRecording else 'black'

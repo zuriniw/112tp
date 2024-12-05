@@ -1,3 +1,11 @@
+'''
+MATH is for operation of single value/list of values: 
+- Component: 
+  - TypicleComponent:
+      - UnaryOperator: Reverse, Square, SquareRoot, MultiplyPi, Absolute
+      - BinaryOperator: Add, Subtract, Multiply, Divide
+'''
+
 from Components import TypicleComponent
 from cmu_graphics import *
 
@@ -9,14 +17,12 @@ class UnaryOperator(TypicleComponent):
         self.isGeo = False
         super().__init__(app, inputs, outputs, name)
         
-        self.inputDefaultValue = {
-            'n': 0
-        }
+        self.inputDefaultValue = {'n': 0}
         
         for node in self.inputNodes:
             node.value = self.inputDefaultValue[node.name]
-            
-        self.outputNodes[0].value = 0
+        self.outputNodes[0].value = self.calculate()
+
         self.hasAllInputs = True
         self.operator = operator
     
