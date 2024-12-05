@@ -379,6 +379,7 @@ class PinnedSlider2D(Slider2D):
         self.x, self.y = x, y
         self.isSliderRecording = False
         self.isSliderPlaying = False
+        self.store = []
 
 
 

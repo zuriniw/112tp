@@ -65,10 +65,6 @@ class Connections:
                 app.messageColor = rgb(226, 163, 136)
                 app.hintMessage = '[requires numeric input; double click the connection to unwire]'
                 return False
-        ###现在如果把东西输入panel会报错
-        
-
-        print('pass the type checssk!')
         return True
 
     def draw(self):

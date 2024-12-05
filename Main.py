@@ -553,7 +553,12 @@ def onMousePress(app, mouseX, mouseY, button):
                     app.currDraggingPinnedSlider = slider
                     return
                 if slider.recordButton.hitTest(mouseX, mouseY) and not slider.isSliderPlaying:
-                    slider.isSliderRecording = not slider.isSliderRecording
+                    if slider.isSliderRecording == True:
+                        slider.isSliderRecording = False
+                        print(slider.store)
+                    else:
+                        slider.isSliderRecording = True
+                        slider.store = []       # 当重新开始一次录制的时候，会清空之前存的东西
                     return
                 elif slider.playButton.hitTest(mouseX, mouseY) and not slider.isSliderRecording:
                     slider.isSliderPlaying = not slider.isSliderPlaying
@@ -652,6 +657,11 @@ def onMouseDrag(app, mouseX, mouseY):
             newY = max(slider.min_val, min(slider.max_val, newY))
             
             slider.updateValue(newX, newY)
+
+            # 如果在录制，需要额外记录
+            if slider.isSliderRecording:
+                slider.store.append((newX, newY))
+
         else:
             # 1D slider处理
             normalized_x = (mouseX - x) / slider.width
@@ -659,6 +669,15 @@ def onMouseDrag(app, mouseX, mouseY):
             newValue = max(slider.min_val, min(slider.max_val, newValue))
             slider.updateValue(newValue)
 
+def onStep(app):
+    for slider in app.pinnedSliders:
+        if slider.isSliderPlaying:
+            if len(slider.store) > 0:  # 确保有存储的数据
+                x, y = slider.store[0]  # 取第一个位置的数据
+                slider.updateValue(x,y)
+
+                # 循环播放：将第一个元素移到末尾
+                slider.store = slider.store[1:] + [slider.store[0]]
 
 def adjustPosition(app, comp, mouseX, mouseY):
     newX = mouseX - app.dragOffset['x']
@@ -761,8 +780,7 @@ def onMouseRelease(app, mouseX, mouseY):
             if isinstance(app.currDraggingComponent, (Slider1D, Slider2D)):
                 app.currDraggingComponent.isDraggingHandle = False
         app.currDraggingComponent = None
-        app.dragOffset = {'x': 0, 
-                         'y': 0}
+        app.dragOffset = {'x': 0, 'y': 0}
 
     ###### 5. Reset Pinned Slider State ######
     if app.currDraggingPinnedSlider:
