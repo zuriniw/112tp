@@ -42,8 +42,9 @@ class Node:
     ###### 2 // Manage Data Flow ######
     # endnode(inputnode) hear from outputnode
     def receiveValue(self, value):
-        self.value = value
-        self.component.updateValue(self.name, value)
+        if self.value != value:
+            self.value = value
+            self.component.updateValue(self.name, value)
 
     def addConnection(self, connection):
         # for inputNode

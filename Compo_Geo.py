@@ -104,7 +104,7 @@ class RectCreator(TypicleComponent):
         self.inputDefaultValue = {
             'point': [['point', (0, 0)]],
             'width': 40,
-            'height': 40
+            'height': 20
         }
         
         for node in self.inputNodes:
@@ -120,10 +120,14 @@ class RectCreator(TypicleComponent):
         width_val = self.inputNodes[1].value if self.inputNodes[1].value is not None else None
         height_val = self.inputNodes[2].value if self.inputNodes[2].value is not None else None
         
+        width_val, height_val = alignLists(width_val, height_val)
+        width_val, point_val = alignLists(width_val, point_val)
+        height_val, point_val = alignLists(height_val, point_val)
+
         rects = []
-        if isinstance(point_val[0], list) and point_val[0][0] == 'point':
-            for point in point_val:
-                rects.append(['rect', point[1], abs(width_val), (height_val)])
+
+        for point, w, h in zip(point_val, width_val, height_val):
+            rects.append(['rect', point[1], abs(w), abs(h)])
         return rects
 
     def draw(self):
