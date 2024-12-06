@@ -141,4 +141,4 @@ class RectCreator(TypicleComponent):
                 height = rect[3]
                 
                 if int(width) != 0 and int(height) != 0:
-                    drawRect(x, y, width, height, fill=None, border='blue', visible=self.isDisplay)
+                    drawRect(x, y, width, height, fill=None, border='blue', align = 'center', visible=self.isDisplay)

@@ -35,7 +35,7 @@ class Connections:
                 return False
             return True
 
-        if isinstance(end_value, list):     # 当输入端 不是单值 是列表
+        if isinstance(end_value, list) and isinstance(end_value[0], list):     # 当输入端 不是单值 是列表
             # 点类型检查
             if end_value[0][0] == 'point':
                 point_validation = (

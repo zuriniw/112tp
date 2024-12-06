@@ -87,7 +87,7 @@ def onAppStart(app):
         'Vector': [Point, Vector, VectorPreview],
         'Geometry': [CircleCreator, RectCreator],
         'Math': [Slider1D, Slider2D, Series, Reverse, Square, SquareRoot, MultiplyPi, Absolute, Add, Subtract, Multiply, Divide],
-        'Manipulation': [Move],
+        'Manipulation': [Move, Rotate],
         'Analyze': [Panel, Distance],
         
     }
@@ -114,7 +114,10 @@ def onAppStart(app):
         VectorPreview: 'input:\n -vector: vector(s)\n -anchor: geo point(s)\n \noutput:\n -none',
         CircleCreator: 'input:\n -point: geo point(s)\n -radius: num(s)\n -isGradFill: boolean\n \noutput:\n -circle(s)',
         RectCreator: 'input:\n -point: geo point(s)\n -width: num(s)\n -height: num(s)\n \noutput:\n -rect(s)',
+        
+        Rotate: 'input:\n -rect(for now only support))\n -angle: num(s)\n \noutput:\n -rotated geo(s)',
         Move: 'input:\n -geo:point/rect/cir..(s)\n -vector: vector(s)\n \noutput:\n -moved geo(s)',
+        
         Series: f"input:\n -First: num\n -Step: num\n -Count: num\n \noutput:\n -list of nums\n{'-'*24}\nWhy not feed output\nto [Point]'s x or y to\ncreate points array?",
         Reverse: 'input:\n -n: num(s)\n \noutput:\n -negated num(s)',
         Square: 'input:\n -n: num(s)\n \noutput:\n -squared num(s)',
