@@ -56,10 +56,11 @@ class UnaryOperator(TypicleComponent):
     def calculate(self):  
         n_val = self.inputNodes[0].value
         n_val = [n_val] if not isinstance(n_val, list) else n_val
-        result = []
+        results = []
         for n in n_val:
-            result.append(self.performOperation(n))
-        return result
+            results.append(self.performOperation(n))
+        if len(results) == 1: results = results[0]
+        return results
 
 class Reverse(UnaryOperator):
     def __init__(self, app):
@@ -122,7 +123,7 @@ class BinaryOperator(TypicleComponent):
         n1_val, n2_val = alignLists(n1_val, n2_val, default_value=0)
 
         results = [self.performOperation(n1, n2) for n1, n2 in zip(n1_val, n2_val)]
-
+        if len(results) == 1: results = results[0]
         return results
 
 class Add(BinaryOperator):
@@ -176,7 +177,7 @@ class Series(TypicleComponent):
         step = self.inputNodes[1].value
         count = self.inputNodes[2].value
         try:
-            series = [first + i * step for i in range(count)]
-            return series
+            results = [first + i * step for i in range(count)]
+            return results
         except (ValueError, TypeError):
             return []

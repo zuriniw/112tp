@@ -664,7 +664,7 @@ def onMouseDrag(app, mouseX, mouseY):
 
 def onStep(app):
     for slider in app.pinnedSliders:
-        if slider.isSliderPlaying:
+        if isinstance(slider,PinnedSlider2D) and slider.isSliderPlaying:
             if len(slider.store) > 0:
                 x, y = slider.store[0]
                 slider.updateValue(x,y)

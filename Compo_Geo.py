@@ -117,13 +117,13 @@ class RectCreator(TypicleComponent):
 
     def calculate(self):
         point_val = self.inputNodes[0].value
-        width_val = abs(self.inputNodes[1].value) if self.inputNodes[1].value is not None else None
-        height_val = abs(self.inputNodes[2].value) if self.inputNodes[2].value is not None else None
+        width_val = self.inputNodes[1].value if self.inputNodes[1].value is not None else None
+        height_val = self.inputNodes[2].value if self.inputNodes[2].value is not None else None
         
         rects = []
         if isinstance(point_val[0], list) and point_val[0][0] == 'point':
             for point in point_val:
-                rects.append(['rect', point[1], width_val, height_val])
+                rects.append(['rect', point[1], abs(width_val), (height_val)])
         return rects
 
     def draw(self):
