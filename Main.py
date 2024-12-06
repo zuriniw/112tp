@@ -1,7 +1,11 @@
+'''
+This is the file users should run
+'''
+
 from cmu_graphics import *
+import time
 
 from Components import *
-
 from Compo_Special_Slider import *
 from Compo_Analyse_Distance import *
 from Compo_Special_Panel import *
@@ -13,7 +17,7 @@ from Connection import Connections
 from Toggle import Toggle
 from Toolbar import *
 
-import time
+
 
 def onAppStart(app):
     ## Window Settings
