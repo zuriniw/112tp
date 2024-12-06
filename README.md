@@ -2,15 +2,15 @@
 
 Ziru's 15-112 term project, a parametric drawing tool built with Python, inspired by Grasshopper.
 
-## Demo Video
-[📺 Watch the Demo Video](https://youtu.be/oNAjPMg67CY?feature=shared)
 
-![ShapeShift](https://i.111666.best/image/p96Kvu1daMIQ4ewtHT2CRt.png)
+[watch the demo video](https://youtu.be/oNAjPMg67CY?feature=shared)
+
+![](https://i.111666.best/image/p96Kvu1daMIQ4ewtHT2CRt.png)
 
 ShapeShift Playground is designed to make graphic and motion design accessible and enjoyable for all. Beyond just drawing, you can use it to construct personalized calculators or simulate mathematical function graphs, expanding the realms of design and calculation to suit your creative needs.
 
 ## To Run the Code
-- Include CMU Graphics in the file. [What is CMU Graphic?](https://academy.cs.cmu.edu/desktop)
+- Include CMU Graphics in the file. [What is CMU Graphics?](https://academy.cs.cmu.edu/desktop)
 - Then run `main.py`
 
 
