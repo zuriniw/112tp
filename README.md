@@ -3,7 +3,7 @@
 [📺 watch the demo video](https://youtu.be/oNAjPMg67CY?feature=shared)
 
 
-![](https://pic.imgdb.cn/item/6752789bd0e0a243d4de759e.jpg)
+[![pATDErR.jpg](https://s21.ax1x.com/2024/12/06/pATDErR.jpg)](https://imgse.com/i/pATDErR)
 
 
 
