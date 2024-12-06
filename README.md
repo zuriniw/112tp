@@ -1,9 +1,9 @@
 # ShapeShift Playground
  Ziru's 15-112 term project, a parametric drawing tool built with Python, inspired by Grasshopper.
-[watch the demo video](https://youtu.be/oNAjPMg67CY?feature=shared)
+[📺 watch the demo video](https://youtu.be/oNAjPMg67CY?feature=shared)
 
 
-![](https://i.111666.best/image/p96Kvu1daMIQ4ewtHT2CRt.png)
+![](https://pic.imgdb.cn/item/6752789bd0e0a243d4de759e.jpg)
 
 
 
